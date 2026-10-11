@@ -743,8 +743,9 @@ void XeniaMenu::onMacroReplay(CCObject*) {
         if (!name.empty()) {
 
             if (st.bot == xenia::BotMode::Record) xenia::bot::flush();
-            auto err = xenia::bot::MacroManager::load(name);
-            if (!err.empty()) XeniaDialog::info("Replay", err);
+            if (auto res = xenia::bot::MacroManager::load(name); !res.ok()) {
+                XeniaDialog::info("Replay", res.unwrapErr());
+            }
             xenia::bot::requestSync();
         }
         self->scheduleRebuild(0.02f);
@@ -754,8 +755,9 @@ void XeniaMenu::onMacroReplay(CCObject*) {
 void XeniaMenu::onMacroCreate(CCObject*) {
     Ref<XeniaMenu> self = this;
     XeniaDialog::input("Create Macro", xenia::tr("New macro name (NXR format)", "Nama makro baru (format NXR)"), "", [self](std::string const& name) -> std::string {
-        auto err = xenia::bot::MacroManager::create(name);
-        if (!err.empty()) return err;
+        if (auto res = xenia::bot::MacroManager::create(name); !res.ok()) {
+            return res.unwrapErr();
+        }
         auto& st = xenia::State::get();
         st.macroName = name;
         st.save();
@@ -768,8 +770,9 @@ void XeniaMenu::onMacroDelete(CCObject*) {
     Ref<XeniaMenu> self = this;
     XeniaMacroPicker::open("Delete Macro", xenia::tr("Delete", "Hapus"), xenia::State::get().macroName, false, [self](std::string const& name) {
         XeniaDialog::confirm("Delete Macro", xenia::trf("Delete macro \"{}\"? This cannot be undone.", "Hapus makro \"{}\"? Tidak bisa dibatalkan.", name), [self, name] {
-            auto err = xenia::bot::MacroManager::remove(name);
-            if (!err.empty()) return XeniaDialog::info("Delete Macro", err);
+            if (auto res = xenia::bot::MacroManager::remove(name); !res.ok()) {
+                return XeniaDialog::info("Delete Macro", res.unwrapErr());
+            }
             auto& st = xenia::State::get();
             if (st.macroName == name) st.macroName.clear();
             if (!xenia::bot::MacroManager::hasCurrent() && st.bot != xenia::BotMode::Disable) st.bot = xenia::BotMode::Disable;
@@ -783,8 +786,9 @@ void XeniaMenu::onMacroRename(CCObject*) {
     Ref<XeniaMenu> self = this;
     XeniaMacroPicker::open("Rename Macro", xenia::tr("Rename", "Ganti"), xenia::State::get().macroName, false, [self](std::string const& old) {
         XeniaDialog::input("Rename Macro", xenia::tr("New name", "Nama baru"), old, [self, old](std::string const& name) -> std::string {
-            auto err = xenia::bot::MacroManager::rename(old, name);
-            if (!err.empty()) return err;
+            if (auto res = xenia::bot::MacroManager::rename(old, name); !res.ok()) {
+                return res.unwrapErr();
+            }
             auto& st = xenia::State::get();
             st.macroName = name;
             st.save();
@@ -798,8 +802,9 @@ void XeniaMenu::onMacroLoad(CCObject*) {
     Ref<XeniaMenu> self = this;
     XeniaMacroPicker::open("Load Macro", xenia::tr("Load", "Muat"), xenia::State::get().macroName, false, [self](std::string const& name) {
         if (xenia::State::get().bot == xenia::BotMode::Record) xenia::bot::flush();
-        auto err = xenia::bot::MacroManager::load(name);
-        if (!err.empty()) return XeniaDialog::info("Load Macro", err);
+        if (auto res = xenia::bot::MacroManager::load(name); !res.ok()) {
+            return XeniaDialog::info("Load Macro", res.unwrapErr());
+        }
         auto& st = xenia::State::get();
         st.macroName = name;
         st.save();
@@ -817,9 +822,11 @@ void XeniaMenu::onMacroSave(CCObject*) {
         return XeniaDialog::info("Save Macro", xenia::tr("No macro loaded. Create or Load one first.", "Belum ada makro dimuat. Buat (Create) atau Load makro dulu."));
     }
     xenia::bot::commitIfIdle();
-    auto err = xenia::bot::MacroManager::save();
+    auto res = xenia::bot::MacroManager::save();
     xenia::bot::markSaved();
-    if (!err.empty()) return XeniaDialog::info("Save Macro", err);
+    if (!res.ok()) {
+        return XeniaDialog::info("Save Macro", res.unwrapErr());
+    }
     auto& m = xenia::bot::MacroManager::current();
     XeniaDialog::info("Save Macro", xenia::trf("Saved: {}.nxr ({} inputs)", "Tersimpan: {}.nxr ({} input)", m.name, m.frames.size()));
     scheduleRebuild(0.02f);

@@ -284,8 +284,9 @@ void XeniaTableBoard::setBotMode(int mode) {
 void XeniaTableBoard::macroLoad(std::string const& name) {
     auto& st = xenia::State::get();
     if (st.bot == xenia::BotMode::Record) xenia::bot::flush();
-    auto err = xenia::bot::MacroManager::load(name);
-    if (!err.empty()) return setHint(err, false);
+    if (auto res = xenia::bot::MacroManager::load(name); !res.ok()) {
+        return setHint(res.unwrapErr(), false);
+    }
     st.macroName = name;
     st.save();
     m_macroInput = name;
@@ -295,8 +296,9 @@ void XeniaTableBoard::macroLoad(std::string const& name) {
 }
 
 void XeniaTableBoard::macroCreate() {
-    auto err = xenia::bot::MacroManager::create(m_macroInput);
-    if (!err.empty()) return setHint(err, false);
+    if (auto res = xenia::bot::MacroManager::create(m_macroInput); !res.ok()) {
+        return setHint(res.unwrapErr(), false);
+    }
     auto& st = xenia::State::get();
     st.macroName = m_macroInput;
     st.save();
@@ -308,8 +310,9 @@ void XeniaTableBoard::macroRename() {
     auto& st = xenia::State::get();
     if (st.macroName.empty()) return setHint(xenia::tr("Pick a macro from the list first.", "Pilih makro dulu dari daftar."), false);
     auto old = st.macroName;
-    auto err = xenia::bot::MacroManager::rename(old, m_macroInput);
-    if (!err.empty()) return setHint(err, false);
+    if (auto res = xenia::bot::MacroManager::rename(old, m_macroInput); !res.ok()) {
+        return setHint(res.unwrapErr(), false);
+    }
     st.macroName = m_macroInput;
     st.save();
     setHint(xenia::trf("Renamed: {} -> {}", "Ganti nama: {} -> {}", old, m_macroInput));
@@ -319,9 +322,9 @@ void XeniaTableBoard::macroRename() {
 void XeniaTableBoard::macroSave() {
     if (!xenia::bot::MacroManager::hasCurrent()) return setHint(xenia::tr("No macro loaded. Create or pick one first.", "Belum ada makro dimuat. Buat atau pilih dulu."), false);
     xenia::bot::commitIfIdle();
-    auto err = xenia::bot::MacroManager::save();
+    auto res = xenia::bot::MacroManager::save();
     xenia::bot::markSaved();
-    if (!err.empty()) return setHint(err, false);
+    if (!res.ok()) return setHint(res.unwrapErr(), false);
     auto& m = xenia::bot::MacroManager::current();
     setHint(xenia::trf("Saved: {}.nxr ({} inputs)", "Tersimpan: {}.nxr ({} input)", m.name, m.frames.size()));
     scheduleRebuild();
@@ -340,8 +343,9 @@ void XeniaTableBoard::macroDelete() {
     }
     m_delArm = false;
     auto name = st.macroName;
-    auto err = xenia::bot::MacroManager::remove(name);
-    if (!err.empty()) return setHint(err, false);
+    if (auto res = xenia::bot::MacroManager::remove(name); !res.ok()) {
+        return setHint(res.unwrapErr(), false);
+    }
     st.macroName.clear();
     if (!xenia::bot::MacroManager::hasCurrent() && st.bot != xenia::BotMode::Disable) st.bot = xenia::BotMode::Disable;
     st.save();

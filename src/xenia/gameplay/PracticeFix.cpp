@@ -3,97 +3,120 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "xenia/core/State.hpp"
+
 using namespace geode::prelude;
 
 namespace {
-    struct PState {
-        double yVel = 0, yVelBeforeSlope = 0, yVelRel = 0, platX = 0, slopeRot = 0, lastJump = 0;
-        float yVelRel3 = 0, xVelRel = 0, xVelRel2 = 0, slopeAngle = 0, slopeAngleRad = 0, rotSpeed = 0;
-        bool onSlope = false, wasOnSlope = false, onGround = false, sliding = false, slidingRight = false;
-        bool rotating = false, jumpBuffered = false, touchedRing = false, ringJumpRel = false;
+    struct PlayerSnapshot {
+        double yVelocity = 0.0;
+        double yVelocityBeforeSlope = 0.0;
+        double yVelocityRelated = 0.0;
+        float yVelocityRelated3 = 0.f;
+        float xVelocityRelated = 0.f;
+        float xVelocityRelated2 = 0.f;
+        double platformerXVelocity = 0.0;
+        float slopeAngle = 0.f;
+        float slopeAngleRadians = 0.f;
+        double slopeRotation = 0.0;
+        bool isOnSlope = false;
+        bool wasOnSlope = false;
+        bool isOnGround = false;
         int stateOnGround = 0;
-        unsigned char stateNoStickX = 0;
-        std::unordered_set<int> rings;
+        uint8_t stateNoStickX = 0;
+        bool isSliding = false;
+        bool isSlidingRight = false;
+        bool isRotating = false;
+        float rotationSpeed = 0.f;
+        double lastJumpTime = 0.0;
+        bool jumpBuffered = false;
+        bool touchedRing = false;
+        bool ringJumpRelated = false;
+        std::unordered_set<int> touchedRings;
         bool valid = false;
+
+        void capture(PlayerObject* player) {
+            if (!player) return;
+            yVelocity = player->m_yVelocity;
+            yVelocityBeforeSlope = player->m_yVelocityBeforeSlope;
+            yVelocityRelated = player->m_yVelocityRelated;
+            yVelocityRelated3 = player->m_yVelocityRelated3;
+            xVelocityRelated = player->m_xVelocityRelated;
+            xVelocityRelated2 = player->m_xVelocityRelated2;
+            platformerXVelocity = player->m_platformerXVelocity;
+            slopeAngle = player->m_slopeAngle;
+            slopeAngleRadians = player->m_slopeAngleRadians;
+            slopeRotation = player->m_slopeRotation;
+            isOnSlope = player->m_isOnSlope;
+            wasOnSlope = player->m_wasOnSlope;
+            isOnGround = player->m_isOnGround;
+            stateOnGround = player->m_stateOnGround;
+            stateNoStickX = player->m_stateNoStickX;
+            isSliding = player->m_isSliding;
+            isSlidingRight = player->m_isSlidingRight;
+            isRotating = player->m_isRotating;
+            rotationSpeed = player->m_rotationSpeed;
+            lastJumpTime = player->m_lastJumpTime;
+            jumpBuffered = player->m_jumpBuffered;
+            touchedRing = player->m_touchedRing;
+            ringJumpRelated = player->m_ringJumpRelated;
+            touchedRings.clear();
+            for (auto const r : player->m_touchedRings) {
+                touchedRings.insert(r);
+            }
+            valid = true;
+        }
+
+        void restore(PlayerObject* player) const {
+            if (!player || !valid) return;
+            player->m_yVelocity = yVelocity;
+            player->m_yVelocityBeforeSlope = yVelocityBeforeSlope;
+            player->m_yVelocityRelated = yVelocityRelated;
+            player->m_yVelocityRelated3 = yVelocityRelated3;
+            player->m_xVelocityRelated = xVelocityRelated;
+            player->m_xVelocityRelated2 = xVelocityRelated2;
+            player->m_platformerXVelocity = platformerXVelocity;
+            player->m_slopeAngle = slopeAngle;
+            player->m_slopeAngleRadians = slopeAngleRadians;
+            player->m_slopeRotation = slopeRotation;
+            player->m_isOnSlope = isOnSlope;
+            player->m_wasOnSlope = wasOnSlope;
+            player->m_isOnGround = isOnGround;
+            player->m_stateOnGround = stateOnGround;
+            player->m_stateNoStickX = stateNoStickX;
+            player->m_isSliding = isSliding;
+            player->m_isSlidingRight = isSlidingRight;
+            player->m_isRotating = isRotating;
+            player->m_rotationSpeed = rotationSpeed;
+            player->m_lastJumpTime = lastJumpTime;
+            player->m_jumpBuffered = jumpBuffered;
+            player->m_touchedRing = touchedRing;
+            player->m_ringJumpRelated = ringJumpRelated;
+            player->m_touchedRings.clear();
+            for (auto const r : touchedRings) {
+                player->m_touchedRings.insert(r);
+            }
+        }
     };
 
-    struct CpExtra {
-        PState p1, p2;
+    struct CheckpointData {
+        PlayerSnapshot p1;
+        PlayerSnapshot p2;
         int progress = -1;
     };
-
-    std::unordered_map<CheckpointObject*, CpExtra> g_cp;
-
-    void capture(PlayerObject* p, PState& s) {
-        if (!p) return;
-        s.yVel = p->m_yVelocity;
-        s.yVelBeforeSlope = p->m_yVelocityBeforeSlope;
-        s.yVelRel = p->m_yVelocityRelated;
-        s.yVelRel3 = p->m_yVelocityRelated3;
-        s.xVelRel = p->m_xVelocityRelated;
-        s.xVelRel2 = p->m_xVelocityRelated2;
-        s.platX = p->m_platformerXVelocity;
-        s.slopeAngle = p->m_slopeAngle;
-        s.slopeAngleRad = p->m_slopeAngleRadians;
-        s.slopeRot = p->m_slopeRotation;
-        s.onSlope = p->m_isOnSlope;
-        s.wasOnSlope = p->m_wasOnSlope;
-        s.onGround = p->m_isOnGround;
-        s.stateOnGround = p->m_stateOnGround;
-        s.stateNoStickX = p->m_stateNoStickX;
-        s.sliding = p->m_isSliding;
-        s.slidingRight = p->m_isSlidingRight;
-        s.rotating = p->m_isRotating;
-        s.rotSpeed = p->m_rotationSpeed;
-        s.lastJump = p->m_lastJumpTime;
-        s.jumpBuffered = p->m_jumpBuffered;
-        s.touchedRing = p->m_touchedRing;
-        s.ringJumpRel = p->m_ringJumpRelated;
-        s.rings.clear();
-        for (auto v : p->m_touchedRings) s.rings.insert(v);
-        s.valid = true;
-    }
-
-    void restore(PlayerObject* p, PState const& s) {
-        if (!p || !s.valid) return;
-        p->m_yVelocity = s.yVel;
-        p->m_yVelocityBeforeSlope = s.yVelBeforeSlope;
-        p->m_yVelocityRelated = s.yVelRel;
-        p->m_yVelocityRelated3 = s.yVelRel3;
-        p->m_xVelocityRelated = s.xVelRel;
-        p->m_xVelocityRelated2 = s.xVelRel2;
-        p->m_platformerXVelocity = s.platX;
-        p->m_slopeAngle = s.slopeAngle;
-        p->m_slopeAngleRadians = s.slopeAngleRad;
-        p->m_slopeRotation = s.slopeRot;
-        p->m_isOnSlope = s.onSlope;
-        p->m_wasOnSlope = s.wasOnSlope;
-        p->m_isOnGround = s.onGround;
-        p->m_stateOnGround = s.stateOnGround;
-        p->m_stateNoStickX = s.stateNoStickX;
-        p->m_isSliding = s.sliding;
-        p->m_isSlidingRight = s.slidingRight;
-        p->m_isRotating = s.rotating;
-        p->m_rotationSpeed = s.rotSpeed;
-        p->m_lastJumpTime = s.lastJump;
-        p->m_jumpBuffered = s.jumpBuffered;
-        p->m_touchedRing = s.touchedRing;
-        p->m_ringJumpRelated = s.ringJumpRel;
-        p->m_touchedRings.clear();
-        for (auto v : s.rings) p->m_touchedRings.insert(v);
-    }
 }
 
 class $modify(XeniaPracticeFix, PlayLayer) {
+    struct Fields {
+        std::unordered_map<CheckpointObject*, CheckpointData> m_checkpoints;
+    };
+
     CheckpointObject* createCheckpoint() {
-        auto cp = PlayLayer::createCheckpoint();
+        auto* cp = PlayLayer::createCheckpoint();
         if (cp && xenia::State::get().botOn()) {
-            if (g_cp.size() > 4000) g_cp.clear();
-            auto& e = g_cp[cp];
-            e = CpExtra{};
-            capture(m_player1, e.p1);
-            capture(m_player2, e.p2);
-            e.progress = (int)m_gameState.m_currentProgress;
+            auto& data = m_fields->m_checkpoints[cp];
+            data.p1.capture(m_player1);
+            data.p2.capture(m_player2);
+            data.progress = static_cast<int>(m_gameState.m_currentProgress);
         }
         return cp;
     }
@@ -101,17 +124,14 @@ class $modify(XeniaPracticeFix, PlayLayer) {
     void loadFromCheckpoint(CheckpointObject* cp) {
         PlayLayer::loadFromCheckpoint(cp);
         if (!cp || !xenia::State::get().botOn()) return;
-        auto it = g_cp.find(cp);
-        if (it == g_cp.end()) return;
-        restore(m_player1, it->second.p1);
-        restore(m_player2, it->second.p2);
-        if (it->second.progress >= 0 && (int)m_gameState.m_currentProgress != it->second.progress) {
+
+        auto const it = m_fields->m_checkpoints.find(cp);
+        if (it == m_fields->m_checkpoints.end()) return;
+
+        it->second.p1.restore(m_player1);
+        it->second.p2.restore(m_player2);
+        if (it->second.progress >= 0) {
             m_gameState.m_currentProgress = it->second.progress;
         }
-    }
-
-    void onQuit() {
-        g_cp.clear();
-        PlayLayer::onQuit();
     }
 };

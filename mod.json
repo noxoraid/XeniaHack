@@ -4,11 +4,11 @@
     "win": "2.2081",
     "android": "2.2081"
   },
-  "version": "v0.8.0",
+  "version": "0.8.0",
   "id": "xeniamod.xenia",
   "name": "XENIA",
   "developer": "XENIA Team",
-  "description": "Gameplay toolkit for level showcases: noclip, speedhack, TPS bypass and a macro bot. Runs that use cheats are never submitted.",
+  "description": "Gameplay toolkit for level showcases: noclip, speedhack, TPS bypass, and macro bot.",
   "resources": {
     "sprites": [
       "resources/*.png"

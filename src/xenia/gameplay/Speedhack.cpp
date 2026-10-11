@@ -3,61 +3,73 @@
 #include <Geode/modify/PlayLayer.hpp>
 #include "xenia/core/State.hpp"
 #include "xenia/bot/Bot.hpp"
+
 using namespace geode::prelude;
 
-static bool s_audioApplied = false;
-static float stepDt() { return (float)(1.0 / xenia::bot::effectiveTps()) * 1.0005f; }
+namespace {
+    float stepDeltaTime() {
+        return static_cast<float>(1.0 / xenia::bot::effectiveTps()) * 1.0005f;
+    }
 
-static void setAudioPitch(float p) {
-    auto fmod = FMODAudioEngine::get();
-    if (!fmod) return;
-    if (fmod->m_backgroundMusicChannel) fmod->m_backgroundMusicChannel->setPitch(p);
-    if (fmod->m_globalChannel) fmod->m_globalChannel->setPitch(p);
-}
-
-static void restoreAudio() {
-    if (!s_audioApplied) return;
-    setAudioPitch(1.f);
-    s_audioApplied = false;
+    void setAudioPitch(float pitch) {
+        if (auto* fmod = FMODAudioEngine::get()) {
+            if (fmod->m_backgroundMusicChannel) {
+                fmod->m_backgroundMusicChannel->setPitch(pitch);
+            }
+            if (fmod->m_globalChannel) {
+                fmod->m_globalChannel->setPitch(pitch);
+            }
+        }
+    }
 }
 
 class $modify(XeniaSpeed, GJBaseGameLayer) {
-    void update(float dt) {
-        auto& s = xenia::State::get();
-        bool inLevel = typeinfo_cast<PlayLayer*>(this) != nullptr;
+    struct Fields {
+        bool m_audioApplied = false;
+    };
 
-        if (inLevel && s.paused && s.recording()) {
+    void update(float dt) override {
+        auto& state = xenia::State::get();
+        bool const inLevel = typeinfo_cast<PlayLayer*>(this) != nullptr;
+
+        if (inLevel && state.paused && state.recording()) {
             setAudioPitch(0.f);
-            s_audioApplied = true;
-            if (s.stepReq) {
-                s.stepReq = false;
-                GJBaseGameLayer::update(stepDt());
+            m_fields->m_audioApplied = true;
+            if (state.stepReq) {
+                state.stepReq = false;
+                GJBaseGameLayer::update(stepDeltaTime());
             }
             return;
         }
 
-        double factor = s.speedFactor();
+        double const factor = state.speedFactor();
         if (inLevel && factor != 1.0) {
             GJBaseGameLayer::update(dt * static_cast<float>(factor));
-            if (s.speedAudio) {
+            if (state.speedAudio) {
                 setAudioPitch(static_cast<float>(factor));
-                s_audioApplied = true;
-            } else {
-                restoreAudio();
+                m_fields->m_audioApplied = true;
+            } else if (m_fields->m_audioApplied) {
+                setAudioPitch(1.f);
+                m_fields->m_audioApplied = false;
             }
             return;
         }
 
-        if (inLevel) restoreAudio();
+        if (inLevel && m_fields->m_audioApplied) {
+            setAudioPitch(1.f);
+            m_fields->m_audioApplied = false;
+        }
+
         GJBaseGameLayer::update(dt);
     }
 };
 
 class $modify(XeniaSpeedQuit, PlayLayer) {
     void onQuit() {
-        restoreAudio();
-        xenia::State::get().paused = false;
-        xenia::State::get().stepReq = false;
+        setAudioPitch(1.f);
+        auto& state = xenia::State::get();
+        state.paused = false;
+        state.stepReq = false;
         PlayLayer::onQuit();
     }
 };

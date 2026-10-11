@@ -1,22 +1,28 @@
 #pragma once
+
 #include <Geode/Geode.hpp>
 #include <filesystem>
+#include <string>
+#include <string_view>
+#include <vector>
 
 namespace xenia::bot {
     struct Frame {
-        int frame;
-        bool down;
-        bool player2;
-        int button;
+        int frame = 0;
+        bool down = false;
+        bool player2 = false;
+        int button = 1;
         bool half = false;
     };
 
     struct Sample {
         int frame = 0;
         bool hasP2 = false;
-        float x1 = 0.f, y1 = 0.f;
+        float x1 = 0.f;
+        float y1 = 0.f;
         double v1 = 0.0;
-        float x2 = 0.f, y2 = 0.f;
+        float x2 = 0.f;
+        float y2 = 0.f;
         double v2 = 0.0;
     };
 
@@ -37,15 +43,18 @@ namespace xenia::bot {
         static constexpr size_t kMaxSamples = 2'000'000;
 
         static std::filesystem::path dir();
-        static bool validName(std::string const& name);
+        static bool validName(std::string_view name);
         static std::vector<std::string> list();
-        static bool exists(std::string const& name);
+        static bool exists(std::string_view name);
 
-        static std::string create(std::string const& name);
-        static std::string remove(std::string const& name);
-        static std::string rename(std::string const& from, std::string const& to);
-        static std::string load(std::string const& name);
-        static std::string save();
+        static geode::Result<void> create(std::string_view name);
+        static geode::Result<void> remove(std::string_view name);
+        static geode::Result<void> rename(std::string_view from, std::string_view to);
+        static geode::Result<void> load(std::string_view name);
+        static geode::Result<void> save();
+
+        static geode::async::Task<geode::Result<void>> loadAsync(std::string name);
+        static geode::async::Task<geode::Result<void>> saveAsync();
 
         static bool hasCurrent();
         static Macro& current();

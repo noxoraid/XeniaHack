@@ -1,15 +1,16 @@
 #include <Geode/Geode.hpp>
 #include "xenia/core/State.hpp"
 #include "xenia/bot/Macro.hpp"
+
 using namespace geode::prelude;
 
 $on_mod(Loaded) {
-    auto& s = xenia::State::get();
-    s.load();
+    auto& state = xenia::State::get();
+    state.load();
 
-    if (!s.macroName.empty()) {
-        if (auto err = xenia::bot::MacroManager::load(s.macroName); !err.empty()) {
-            log::warn("Macro '{}' was not loaded: {}", s.macroName, err);
+    if (!state.macroName.empty()) {
+        if (auto res = xenia::bot::MacroManager::load(state.macroName); !res.ok()) {
+            log::warn("Default macro '{}' could not be loaded: {}", state.macroName, res.unwrapErr());
         }
     }
 }
