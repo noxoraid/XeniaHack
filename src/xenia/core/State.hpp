@@ -64,16 +64,22 @@ namespace xenia {
         bool slideReal = true;
         double slideCps = 12.0;
 
-        // Click indicator (dari .nxr, saat Playback)
+        // Click indicator (diambil dari .nxr)
         bool clickInd = false;
-        int ciMode = 0;                       // 0 = Line, 1 = Follow Zone
-        int ciNote[3] = {232, 58, 107};       // warna note/klik
-        int ciLine[3] = {255, 255, 255};      // warna garis / zone
-        int ciPerfect[3] = {80, 255, 120};    // warna tulisan Perfect
+        int ciMode = 0;                       // 0 = Line (jalur), 1 = Follow Zone
+        bool ciLadder = true;                 // tangga di kiri layar
         bool ciPerfectOn = true;
-        double ciX = 28.0, ciY = 44.0;        // posisi lane (kiri-bawah)
-        double ciLen = 150.0, ciW = 14.0;     // panjang & lebar lane
-        double ciAhead = 0.8;                 // detik klik terlihat sebelum kena
+        int ciRung[3] = {240, 240, 240};      // anak tangga = klik
+        int ciBar[3] = {230, 50, 50};         // bar hit di dasar tangga
+        int ciArrow[3] = {60, 230, 110};      // chevron > < di sisi bar
+        int ciPath[3] = {0, 255, 90};         // garis jalur (Line) + kotak klik
+        int ciZone[3] = {255, 255, 255};      // zone (Follow Zone)
+        int ciPerfect[3] = {80, 255, 120};    // tulisan Perfect
+        double ciX = 60.0, ciY = 44.0;        // posisi tangga (kiri-bawah)
+        double ciLen = 150.0, ciW = 40.0;     // panjang & lebar tangga
+        double ciAhead = 0.8;                 // detik klik terlihat di tangga sebelum kena
+        double ciReach = 1.2;                 // detik jalur/zone terlihat di depan player
+        double ciThick = 3.0;                 // tebal garis jalur
         double ciOpacity = 0.9;
         double ciTextSize = 0.45;
 

@@ -1,5 +1,6 @@
 #include "xenia/core/Lang.hpp"
 #include "xenia/ui/table/XeniaTableBoard.hpp"
+#include "xenia/ui/hud/XeniaClickIndicator.hpp"
 #include "xenia/ui/table/XeniaTable.hpp"
 #include "xenia/ui/menu/XeniaMenu.hpp"
 #include "xenia/ui/overlay/XeniaOverlay.hpp"
@@ -119,6 +120,18 @@ namespace {
             else ref = (T)v;
             xenia::State::get().save();
             if (after) after();
+        }));
+        return r;
+    }
+
+    Row hexRow(std::string label, int* c) {
+        Row r;
+        r.cells.push_back(mkText(std::move(label), true, 1.f, 8.f));
+        r.cells.push_back(mkInput(ui::colorToHex(c), "0123456789abcdefABCDEF#", 7, [c](std::string const& s) {
+            int tmp[3];
+            if (!ui::hexToColor(s, tmp)) return;
+            c[0] = tmp[0]; c[1] = tmp[1]; c[2] = tmp[2];
+            xenia::State::get().save();
         }));
         return r;
     }
@@ -467,26 +480,26 @@ void XeniaTableBoard::buildWindows() {
             w.rows.push_back(mkMulti({
                 mkToggle("Line", [] { return xenia::State::get().ciMode == 0; }, [this] {
                     xenia::State::get().ciMode = 0; xenia::State::get().save(); refreshLive();
-                }, xenia::tr("Fixed hit line at the bottom; clicks fall onto it.", "Garis hit tetap di bawah; klik turun ke garis."), true),
+                }, xenia::tr("Line: green path of the macro ahead of the player, with a square on every click.", "Line: jalur macro di depan player, dengan kotak di tiap klik."), true),
                 mkToggle("Follow Zone", [] { return xenia::State::get().ciMode == 1; }, [this] {
                     xenia::State::get().ciMode = 1; xenia::State::get().save(); refreshLive();
-                }, xenia::tr("A zone box that follows the next click down to the hit.", "Kotak zone yang mengikuti klik berikutnya sampai kena."), true),
+                }, xenia::tr("Follow Zone: wide band = hold length. On hit it follows the player, then disappears.", "Follow Zone: pita lebar = panjang hold. Saat kena ikut player lalu hilang."), true),
             }));
+            w.rows.push_back(subBool(xenia::tr("Ladder (left)", "Tangga (kiri)"), st.ciLadder, xenia::tr("Ladder on the left: clicks fall onto the hit bar.", "Tangga di kiri: klik turun ke bar hit.")));
             w.rows.push_back(subBool(xenia::tr("Perfect Text", "Teks Perfect"), st.ciPerfectOn, xenia::tr("Show a green Perfect on every hit.", "Tampilkan Perfect hijau tiap kena.")));
-            w.rows.push_back(numRow("Note R", st.ciNote[0], 0, 255, 3));
-            w.rows.push_back(numRow("Note G", st.ciNote[1], 0, 255, 3));
-            w.rows.push_back(numRow("Note B", st.ciNote[2], 0, 255, 3));
-            w.rows.push_back(numRow("Line R", st.ciLine[0], 0, 255, 3));
-            w.rows.push_back(numRow("Line G", st.ciLine[1], 0, 255, 3));
-            w.rows.push_back(numRow("Line B", st.ciLine[2], 0, 255, 3));
-            w.rows.push_back(numRow("Perfect R", st.ciPerfect[0], 0, 255, 3));
-            w.rows.push_back(numRow("Perfect G", st.ciPerfect[1], 0, 255, 3));
-            w.rows.push_back(numRow("Perfect B", st.ciPerfect[2], 0, 255, 3));
+            w.rows.push_back(hexRow(xenia::tr("Rungs", "Anak tangga"), st.ciRung));
+            w.rows.push_back(hexRow("Hit Bar", st.ciBar));
+            w.rows.push_back(hexRow(xenia::tr("Arrows", "Panah"), st.ciArrow));
+            w.rows.push_back(hexRow(xenia::tr("Path", "Jalur"), st.ciPath));
+            w.rows.push_back(hexRow("Zone", st.ciZone));
+            w.rows.push_back(hexRow("Perfect", st.ciPerfect));
             w.rows.push_back(numRow("Pos X", st.ciX, 0.0, 1000.0, 5));
             w.rows.push_back(numRow("Pos Y", st.ciY, 0.0, 1000.0, 5));
             w.rows.push_back(numRow(xenia::tr("Length", "Panjang"), st.ciLen, 40.0, 400.0, 5));
-            w.rows.push_back(numRow(xenia::tr("Width", "Lebar"), st.ciW, 4.0, 80.0, 5));
+            w.rows.push_back(numRow(xenia::tr("Width", "Lebar"), st.ciW, 14.0, 120.0, 5));
             w.rows.push_back(numRow(xenia::tr("Ahead (s)", "Awal (dtk)"), st.ciAhead, 0.2, 5.0, 4));
+            w.rows.push_back(numRow(xenia::tr("Reach (s)", "Jangkauan (dtk)"), st.ciReach, 0.2, 5.0, 4));
+            w.rows.push_back(numRow(xenia::tr("Thickness", "Tebal"), st.ciThick, 0.5, 12.0, 4));
             w.rows.push_back(numRow(xenia::tr("Opacity", "Opasitas"), st.ciOpacity, 0.1, 1.0, 4));
             w.rows.push_back(numRow(xenia::tr("Text size", "Ukuran teks"), st.ciTextSize, 0.2, 1.2, 4));
         }

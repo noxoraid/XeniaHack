@@ -44,6 +44,7 @@ protected:
 
     std::vector<cocos2d::CCNode*> buildPlayer(float colW, float cardH);
     std::vector<cocos2d::CCNode*> buildBot(float w);
+    std::vector<cocos2d::CCNode*> buildIndicator(float w);
     std::vector<cocos2d::CCNode*> buildUtils(float colW, float cardH);
     std::vector<cocos2d::CCNode*> buildSettings(float w);
 
@@ -56,6 +57,10 @@ protected:
     void onInfo(cocos2d::CCObject*);
     void onBotMode(cocos2d::CCObject*);
     void onStats(cocos2d::CCObject*);
+    void onClickInd(cocos2d::CCObject*);
+    void onCiMode(cocos2d::CCObject*);
+    void onCiLadder(cocos2d::CCObject*);
+    void onCiPerfect(cocos2d::CCObject*);
     void onTps(cocos2d::CCObject*);
     void onTpsSettings(cocos2d::CCObject*);
     void onCbf(cocos2d::CCObject*);

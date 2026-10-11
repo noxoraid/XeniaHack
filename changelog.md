@@ -1,7 +1,7 @@
 # Changelog
 
 ## Unreleased
-- Added **Click Indicator** (Bot window): reads clicks from the loaded `.nxr` and draws them falling on the left side during Playback. Two styles: **Line** and **Follow Zone**. Custom colors, position, size, speed and a green **Perfect** on every hit
+- Added **Click Indicator** (Bot window in Table, Bot tab in Panel). Left ladder with a hit bar and chevrons, green **Perfect** on every hit. **Line**: path of the macro ahead of the player with a square on each click. **Follow Zone**: wide band (width = hold) that follows the player on hit, then disappears. Colors (hex), position, size, reach and opacity are all adjustable. Shows a hint when no macro is loaded or the bot is not on Playback
 - Added a **Red** theme (red panel, card and box sprites) and made it the default on Android; Windows keeps Aurora
 - Added a language selector (English / Indonesian) in Settings for both the Table and Panel layouts
 - Whole interface, popups, status messages and macro errors are now English by default

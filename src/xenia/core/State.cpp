@@ -66,17 +66,25 @@ namespace xenia {
 
         clickInd = m->getSavedValue<bool>("clickInd", false);
         ciMode = std::clamp(m->getSavedValue<int>("ciMode", 0), 0, 1);
-        for (int i = 0; i < 3; i++) {
-            ciNote[i] = std::clamp(m->getSavedValue<int>(fmt::format("ciNote{}", i), i == 0 ? 232 : i == 1 ? 58 : 107), 0, 255);
-            ciLine[i] = std::clamp(m->getSavedValue<int>(fmt::format("ciLine{}", i), 255), 0, 255);
-            ciPerfect[i] = std::clamp(m->getSavedValue<int>(fmt::format("ciPerfect{}", i), i == 0 ? 80 : i == 1 ? 255 : 120), 0, 255);
-        }
+        ciLadder = m->getSavedValue<bool>("ciLadder", true);
         ciPerfectOn = m->getSavedValue<bool>("ciPerfectOn", true);
-        ciX = d(m->getSavedValue<double>("ciX", 28.0), 0.0, 1000.0, 28.0);
-        ciY = d(m->getSavedValue<double>("ciY", 44.0), 0.0, 1000.0, 44.0);
-        ciLen = d(m->getSavedValue<double>("ciLen", 150.0), 40.0, 400.0, 150.0);
-        ciW = d(m->getSavedValue<double>("ciW", 14.0), 4.0, 80.0, 14.0);
+        auto col3 = [&](char const* key, int out[3], int r, int g, int bl) {
+            int def[3] = {r, g, bl};
+            for (int i = 0; i < 3; i++) out[i] = std::clamp(m->getSavedValue<int>(fmt::format("{}{}", key, i), def[i]), 0, 255);
+        };
+        col3("ciRung", ciRung, 240, 240, 240);
+        col3("ciBar", ciBar, 230, 50, 50);
+        col3("ciArrow", ciArrow, 60, 230, 110);
+        col3("ciPath", ciPath, 0, 255, 90);
+        col3("ciZone", ciZone, 255, 255, 255);
+        col3("ciPerfect", ciPerfect, 80, 255, 120);
+        ciX = d(m->getSavedValue<double>("ciX2", 60.0), 0.0, 1000.0, 60.0);
+        ciY = d(m->getSavedValue<double>("ciY2", 44.0), 0.0, 1000.0, 44.0);
+        ciLen = d(m->getSavedValue<double>("ciLen2", 150.0), 40.0, 400.0, 150.0);
+        ciW = d(m->getSavedValue<double>("ciW2", 40.0), 14.0, 120.0, 40.0);
         ciAhead = d(m->getSavedValue<double>("ciAhead", 0.8), 0.2, 5.0, 0.8);
+        ciReach = d(m->getSavedValue<double>("ciReach", 1.2), 0.2, 5.0, 1.2);
+        ciThick = d(m->getSavedValue<double>("ciThick", 3.0), 0.5, 12.0, 3.0);
         ciOpacity = d(m->getSavedValue<double>("ciOpacity", 0.9), 0.1, 1.0, 0.9);
         ciTextSize = d(m->getSavedValue<double>("ciTextSize", 0.45), 0.2, 1.2, 0.45);
 
@@ -135,17 +143,20 @@ namespace xenia {
 
         m->setSavedValue<bool>("clickInd", clickInd);
         m->setSavedValue<int>("ciMode", ciMode);
-        for (int i = 0; i < 3; i++) {
-            m->setSavedValue<int>(fmt::format("ciNote{}", i), ciNote[i]);
-            m->setSavedValue<int>(fmt::format("ciLine{}", i), ciLine[i]);
-            m->setSavedValue<int>(fmt::format("ciPerfect{}", i), ciPerfect[i]);
-        }
+        m->setSavedValue<bool>("ciLadder", ciLadder);
         m->setSavedValue<bool>("ciPerfectOn", ciPerfectOn);
-        m->setSavedValue<double>("ciX", ciX);
-        m->setSavedValue<double>("ciY", ciY);
-        m->setSavedValue<double>("ciLen", ciLen);
-        m->setSavedValue<double>("ciW", ciW);
+        auto put3 = [&](char const* key, int const c[3]) {
+            for (int i = 0; i < 3; i++) m->setSavedValue<int>(fmt::format("{}{}", key, i), c[i]);
+        };
+        put3("ciRung", ciRung); put3("ciBar", ciBar); put3("ciArrow", ciArrow);
+        put3("ciPath", ciPath); put3("ciZone", ciZone); put3("ciPerfect", ciPerfect);
+        m->setSavedValue<double>("ciX2", ciX);
+        m->setSavedValue<double>("ciY2", ciY);
+        m->setSavedValue<double>("ciLen2", ciLen);
+        m->setSavedValue<double>("ciW2", ciW);
         m->setSavedValue<double>("ciAhead", ciAhead);
+        m->setSavedValue<double>("ciReach", ciReach);
+        m->setSavedValue<double>("ciThick", ciThick);
         m->setSavedValue<double>("ciOpacity", ciOpacity);
         m->setSavedValue<double>("ciTextSize", ciTextSize);
 

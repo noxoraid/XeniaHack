@@ -1,4 +1,5 @@
 #include "xenia/ui/Platform.hpp"
+#include "xenia/ui/hud/XeniaClickIndicator.hpp"
 #include "xenia/core/Lang.hpp"
 #include "xenia/ui/menu/XeniaMenu.hpp"
 #include "xenia/ui/widgets/XeniaScrollbar.hpp"
@@ -320,6 +321,124 @@ std::vector<CCNode*> XeniaMenu::buildPlayer(float colW, float cardH) {
     };
 }
 
+static CCNode* makeHexRowCard(char const* title, float w, int* c) {
+    float h = 34.f;
+    auto row = ui::makeCard(w, h);
+    auto lbl = ui::makeLabel(title, w - 140.f, 0.45f);
+    lbl->setAnchorPoint({0.f, 0.5f});
+    lbl->setPosition({12.f, h / 2});
+    row->addChild(lbl);
+
+    float iw = 84.f, ih = 22.f;
+    auto inBg = ui::makeSlice("box.png", iw, ih, 7.f);
+    inBg->setPosition({w - 12.f - iw, (h - ih) / 2});
+    row->addChild(inBg);
+
+    auto sw = CCLayerColor::create({(GLubyte)c[0], (GLubyte)c[1], (GLubyte)c[2], 255}, 14.f, 14.f);
+    sw->setPosition({w - 12.f - iw - 22.f, (h - 14.f) / 2});
+    row->addChild(sw);
+
+    auto input = TextInput::create(iw, "", ui::font());
+    input->setFilter("0123456789abcdefABCDEF#");
+    input->setMaxCharCount(7);
+    input->setString(ui::colorToHex(c), false);
+    if (auto b = input->getBGSprite()) b->setVisible(false);
+    input->setScale(0.8f);
+    input->setPosition({w - 12.f - iw / 2, h / 2});
+    row->addChild(input);
+
+    Ref<CCLayerColor> swRef = sw;
+    input->setCallback([c, swRef](std::string const& str) {
+        int t[3];
+        if (!ui::hexToColor(str, t)) return;
+        c[0] = t[0]; c[1] = t[1]; c[2] = t[2];
+        swRef->setColor({(GLubyte)t[0], (GLubyte)t[1], (GLubyte)t[2]});
+        xenia::State::get().save();
+    });
+    return row;
+}
+
+std::vector<CCNode*> XeniaMenu::buildIndicator(float w) {
+    auto& st = xenia::State::get();
+    std::vector<CCNode*> out;
+    out.push_back(makeModCard("Click Indicator", w, 36.f, st.clickInd, 11, menu_selector(XeniaMenu::onClickInd), nullptr));
+    if (!st.clickInd) return out;
+
+    {
+        float h = 56.f;
+        auto card = ui::makeCard(w, h);
+        auto lbl = ui::makeLabel(xenia::tr("Indicator mode", "Mode indikator"), w - 24.f, 0.45f);
+        lbl->setAnchorPoint({0.f, 0.5f});
+        lbl->setPosition({12.f, h - 14.f});
+        card->addChild(lbl);
+        auto menu = CCMenu::create();
+        menu->setPosition({0, 0});
+        card->addChild(menu);
+        char const* names[] = {"Line", "Follow Zone"};
+        float bw = (w - 24.f - 6.f) / 2;
+        for (int i = 0; i < 2; i++) {
+            auto item = CCMenuItemSpriteExtra::create(ui::makeButton(names[i], bw, st.ciMode == i, 26.f), this, menu_selector(XeniaMenu::onCiMode));
+            item->setTag(i);
+            item->setPosition({12.f + bw / 2 + i * (bw + 6.f), 16.f});
+            menu->addChild(item);
+        }
+        out.push_back(card);
+    }
+
+    out.push_back(makeModCard(xenia::tr("Ladder (left)", "Tangga (kiri)"), w, 36.f, st.ciLadder, 11, menu_selector(XeniaMenu::onCiLadder), nullptr));
+    out.push_back(makeModCard(xenia::tr("Perfect Text", "Teks Perfect"), w, 36.f, st.ciPerfectOn, 11, menu_selector(XeniaMenu::onCiPerfect), nullptr));
+
+    out.push_back(makeHexRowCard(xenia::tr("Rungs", "Anak tangga"), w, st.ciRung));
+    out.push_back(makeHexRowCard("Hit Bar", w, st.ciBar));
+    out.push_back(makeHexRowCard(xenia::tr("Arrows", "Panah"), w, st.ciArrow));
+    out.push_back(makeHexRowCard(xenia::tr("Path", "Jalur"), w, st.ciPath));
+    out.push_back(makeHexRowCard("Zone", w, st.ciZone));
+    out.push_back(makeHexRowCard("Perfect", w, st.ciPerfect));
+
+    auto slider = [&](char const* title, double& ref, float mn, float mx, int dec) {
+        out.push_back(makeSliderRow(title, w, mn, mx, (float)ref, dec, [&ref](float v, int phase) {
+            ref = v;
+            if (phase != Live) xenia::State::get().save();
+        }));
+    };
+    slider("Pos X", st.ciX, 0.f, 600.f, 0);
+    slider("Pos Y", st.ciY, 0.f, 320.f, 0);
+    slider(xenia::tr("Length", "Panjang"), st.ciLen, 40.f, 300.f, 0);
+    slider(xenia::tr("Width", "Lebar"), st.ciW, 14.f, 120.f, 0);
+    slider(xenia::tr("Ahead (s)", "Awal (dtk)"), st.ciAhead, 0.2f, 3.f, 2);
+    slider(xenia::tr("Reach (s)", "Jangkauan (dtk)"), st.ciReach, 0.2f, 3.f, 2);
+    slider(xenia::tr("Thickness", "Tebal"), st.ciThick, 0.5f, 12.f, 1);
+    slider(xenia::tr("Opacity", "Opasitas"), st.ciOpacity, 0.1f, 1.f, 2);
+    slider(xenia::tr("Text size", "Ukuran teks"), st.ciTextSize, 0.2f, 1.2f, 2);
+    return out;
+}
+
+void XeniaMenu::onClickInd(CCObject*) {
+    auto& st = xenia::State::get();
+    st.clickInd = !st.clickInd;
+    st.save();
+    scheduleRebuild(0.02f);
+}
+
+void XeniaMenu::onCiMode(CCObject* s) {
+    auto& st = xenia::State::get();
+    st.ciMode = static_cast<CCNode*>(s)->getTag();
+    st.save();
+    scheduleRebuild(0.02f);
+}
+
+void XeniaMenu::onCiLadder(CCObject*) {
+    auto& st = xenia::State::get();
+    st.ciLadder = !st.ciLadder;
+    st.save();
+}
+
+void XeniaMenu::onCiPerfect(CCObject*) {
+    auto& st = xenia::State::get();
+    st.ciPerfectOn = !st.ciPerfectOn;
+    st.save();
+}
+
 std::vector<CCNode*> XeniaMenu::buildBot(float w) {
     auto& st = xenia::State::get();
     std::vector<CCNode*> out;
@@ -414,6 +533,7 @@ std::vector<CCNode*> XeniaMenu::buildBot(float w) {
 
     out.push_back(makeModCard("CBF Bypass", w, 36.f, st.cbfBypass, 5, menu_selector(XeniaMenu::onCbf), nullptr));
     out.push_back(makeModCard("Particle Fixed", w, 36.f, st.particleFixed, 6, menu_selector(XeniaMenu::onParticle), nullptr));
+    for (auto n : buildIndicator(w)) out.push_back(n);
 
     return out;
 }
@@ -681,6 +801,8 @@ void XeniaMenu::onInfo(CCObject* s) {
         XeniaDialog::info("Wave Slide", xenia::tr("The wave can slide along blocks without dying (no need to hold D manually): collisions with solid blocks are ignored and the position is held while it auto-clicks. Real clicks are recorded and counted in input/CPS, fake clicks are visual only. Configure it with the gear. Only active while Safe Mode is OFF.", "Wave bisa menyusuri block tanpa mati (tidak perlu menekan D manual): tabrakan dengan block solid diabaikan dan posisi ditahan, sambil mengklik otomatis. Klik asli ikut terekam dan masuk input/CPS, klik palsu hanya visual. Atur lewat gear. Hanya aktif saat Safe Mode OFF."));
     } else if (tag == 8) {
         XeniaDialog::info("Straight Wave", xenia::tr("The wave is locked perfectly straight (Y is frozen) at the height it had when entering wave mode. Click effects still play. Click rate and click effects are set with the gear. Only active while Safe Mode is OFF; the run is not saved.", "Wave terkunci lurus 100% (Y dikunci) seperti diam di ketinggian saat masuk mode wave. Efek klik tetap jalan. Kecepatan klik dan efek klik diatur lewat gear. Hanya aktif saat Safe Mode OFF; run-nya tidak disimpan."));
+    } else if (tag == 11) {
+        XeniaDialog::info("Click Indicator", xenia::tr("Reads the clicks from the loaded .nxr. Ladder on the left: clicks fall onto the hit bar and a green Perfect shows on every hit. Line: path of the macro ahead of the player with a square on each click. Follow Zone: a wide band (width = hold) that follows the player on hit, then disappears. Needs Playback with Safe Mode OFF; Line and Follow Zone need a macro with position data.", "Membaca klik dari .nxr yang dimuat. Tangga di kiri: klik turun ke bar hit dan Perfect hijau muncul tiap kena. Line: jalur macro di depan player dengan kotak di tiap klik. Follow Zone: pita lebar (lebar = hold) yang ikut player saat kena lalu hilang. Butuh Playback dengan Safe Mode OFF; Line dan Follow Zone butuh macro yang punya data posisi."));
     } else if (tag == 3) {
         XeniaDialog::info("Stats HUD", xenia::tr("Shows info in the top-left corner while playing a level. Choose what is displayed (FPS, TPS, frame, input, CPS, position, etc.) with the gear.", "Menampilkan info di pojok kiri atas saat bermain level. Pilih yang ditampilkan (FPS, TPS, frame, input, CPS, posisi, dll) lewat gear."));
     } else {
