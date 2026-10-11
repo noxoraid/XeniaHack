@@ -28,7 +28,7 @@ class $modify(XeniaSpeed, GJBaseGameLayer) {
         bool m_audioApplied = false;
     };
 
-    void update(float dt) override {
+    void update(float dt) {
         auto& state = xenia::State::get();
         bool const inLevel = typeinfo_cast<PlayLayer*>(this) != nullptr;
 

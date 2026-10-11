@@ -232,16 +232,15 @@ namespace xenia::bot {
     }
 
     fs::path MacroManager::dir() {
+        std::error_code ec;
 #ifdef GEODE_IS_ANDROID
         fs::path const androidDir = "/storage/emulated/0/Android/media/com.geode.launcher/game/nxr_tas";
-        std::error_code ec;
         fs::create_directories(androidDir, ec);
         if (!ec && fs::is_directory(androidDir, ec)) {
             return androidDir;
         }
 #endif
         auto const fallback = Mod::get()->getSaveDir() / "macros";
-        std::error_code ec;
         fs::create_directories(fallback, ec);
         return fallback;
     }
@@ -337,10 +336,10 @@ namespace xenia::bot {
 
     Result<void> MacroManager::load(std::string_view name) {
         auto parsed = deserializeFromFile(macroPath(name));
-        if (!parsed.ok()) {
+        if (parsed.isErr()) {
             return Err(parsed.unwrapErr());
         }
-        s_currentMacro = std::move(parsed.unwrap());
+        s_currentMacro = std::move(parsed).unwrap();
         s_currentMacro.name = std::string(name);
         s_hasMacro = true;
         return Ok();
@@ -353,18 +352,6 @@ namespace xenia::bot {
         s_currentMacro.modified = std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::system_clock::now().time_since_epoch()).count();
         return serializeToFile(macroPath(s_currentMacro.name), s_currentMacro);
-    }
-
-    async::Task<Result<void>> MacroManager::loadAsync(std::string name) {
-        return async::Task<Result<void>>::run([name = std::move(name)]() -> Result<void> {
-            return MacroManager::load(name);
-        });
-    }
-
-    async::Task<Result<void>> MacroManager::saveAsync() {
-        return async::Task<Result<void>>::run([]() -> Result<void> {
-            return MacroManager::save();
-        });
     }
 
     bool MacroManager::hasCurrent() {

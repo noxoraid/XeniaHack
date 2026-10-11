@@ -5,7 +5,7 @@
 using namespace geode::prelude;
 
 class $modify(XeniaNoclip, PlayLayer) {
-    void destroyPlayer(PlayerObject* player, GameObject* object) override {
+    void destroyPlayer(PlayerObject* player, GameObject* object) {
         if (xenia::State::get().noclipOn() && object != m_anticheatSpike) {
             return;
         }

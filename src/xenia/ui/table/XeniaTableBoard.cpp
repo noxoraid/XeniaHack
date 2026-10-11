@@ -28,16 +28,17 @@ namespace {
     constexpr float DRAG_SLOP = xenia::ui::platform::kDragSlop;
     constexpr int WIN_COUNT = 6;
 
-    ccColor3B const ACCENT{92, 226, 214};
-    ccColor3B const TXT{232, 238, 252};
-    ccColor3B const DIM{136, 146, 186};
+    ccColor3B const ACCENT{232, 58, 107};
+    ccColor3B const TXT{236, 236, 236};
+    ccColor3B const DIM{140, 140, 140};
     ccColor3B const OKC{120, 230, 140};
     ccColor3B const BADC{255, 110, 110};
-    ccColor3B const OFFBAR{52, 58, 104};
-    ccColor4B const C_BG{24, 27, 54, 255};
-    ccColor4B const C_INPUT{13, 15, 34, 255};
-    ccColor4B const C_HEAD{74, 84, 214, 255};
-    ccColor4B const C_BAR{12, 14, 30, 245};
+    ccColor3B const OFFBAR{78, 78, 78};
+    ccColor4B const C_BG{43, 43, 43, 255};
+    ccColor4B const C_INPUT{30, 30, 30, 255};
+    ccColor4B const C_HEAD{232, 58, 107, 255};
+    ccColor4B const C_BAR{26, 26, 26, 245};
+    ccColor4B const C_SCROLL{232, 58, 107, 150};
 
     enum WinId { WPlayer = 0, WBot = 1, WMacro = 2, WUtils = 3, WStats = 4, WSettings = 5 };
     enum GearId { GSpeed = 10, GTps = 11, GShip = 12, GWave = 13, GClicker = 14, GSlide = 15 };
@@ -164,8 +165,8 @@ bool XeniaTableBoard::init(CCSize view) {
     close->setPosition({view.width - 28.f, STATUS_H / 2 - 0.5f});
     m_status->addChild(close);
 
-    m_hBar = CCLayerColor::create({92, 226, 214, 150}, 30.f, 2.f);
-    m_vBar = CCLayerColor::create({92, 226, 214, 150}, 2.f, 30.f);
+    m_hBar = CCLayerColor::create(C_SCROLL, 30.f, 2.f);
+    m_vBar = CCLayerColor::create(C_SCROLL, 2.f, 30.f);
     m_hBar->setVisible(false);
     m_vBar->setVisible(false);
     this->addChild(m_hBar, 15);
@@ -284,7 +285,7 @@ void XeniaTableBoard::setBotMode(int mode) {
 void XeniaTableBoard::macroLoad(std::string const& name) {
     auto& st = xenia::State::get();
     if (st.bot == xenia::BotMode::Record) xenia::bot::flush();
-    if (auto res = xenia::bot::MacroManager::load(name); !res.ok()) {
+    if (auto res = xenia::bot::MacroManager::load(name); res.isErr()) {
         return setHint(res.unwrapErr(), false);
     }
     st.macroName = name;
@@ -296,7 +297,7 @@ void XeniaTableBoard::macroLoad(std::string const& name) {
 }
 
 void XeniaTableBoard::macroCreate() {
-    if (auto res = xenia::bot::MacroManager::create(m_macroInput); !res.ok()) {
+    if (auto res = xenia::bot::MacroManager::create(m_macroInput); res.isErr()) {
         return setHint(res.unwrapErr(), false);
     }
     auto& st = xenia::State::get();
@@ -310,7 +311,7 @@ void XeniaTableBoard::macroRename() {
     auto& st = xenia::State::get();
     if (st.macroName.empty()) return setHint(xenia::tr("Pick a macro from the list first.", "Pilih makro dulu dari daftar."), false);
     auto old = st.macroName;
-    if (auto res = xenia::bot::MacroManager::rename(old, m_macroInput); !res.ok()) {
+    if (auto res = xenia::bot::MacroManager::rename(old, m_macroInput); res.isErr()) {
         return setHint(res.unwrapErr(), false);
     }
     st.macroName = m_macroInput;
@@ -324,7 +325,7 @@ void XeniaTableBoard::macroSave() {
     xenia::bot::commitIfIdle();
     auto res = xenia::bot::MacroManager::save();
     xenia::bot::markSaved();
-    if (!res.ok()) return setHint(res.unwrapErr(), false);
+    if (res.isErr()) return setHint(res.unwrapErr(), false);
     auto& m = xenia::bot::MacroManager::current();
     setHint(xenia::trf("Saved: {}.nxr ({} inputs)", "Tersimpan: {}.nxr ({} input)", m.name, m.frames.size()));
     scheduleRebuild();
@@ -343,7 +344,7 @@ void XeniaTableBoard::macroDelete() {
     }
     m_delArm = false;
     auto name = st.macroName;
-    if (auto res = xenia::bot::MacroManager::remove(name); !res.ok()) {
+    if (auto res = xenia::bot::MacroManager::remove(name); res.isErr()) {
         return setHint(res.unwrapErr(), false);
     }
     st.macroName.clear();
@@ -742,7 +743,7 @@ void XeniaTableBoard::drawWindows() {
 
             bool single = row.cells.size() == 1 && row.cells[0].kind == Cell::Toggle && row.cells[0].on && row.marker;
             if (single) {
-                auto bar = CCLayerColor::create({52, 58, 104, 255}, 2.f, ROW_H - 4.f);
+                auto bar = CCLayerColor::create({OFFBAR.r, OFFBAR.g, OFFBAR.b, 255}, 2.f, ROW_H - 4.f);
                 bar->setPosition({w - 3.f, ry + 2.f});
                 node->addChild(bar, 2);
                 bool on = row.cells[0].on();
@@ -754,7 +755,7 @@ void XeniaTableBoard::drawWindows() {
                 bool open = s_open.count(row.gear) > 0;
                 auto tri = CCDrawNode::create();
                 CCPoint pts[3] = {{w - 15.f, ry + 3.f}, {w - 6.f, ry + 3.f}, {w - 6.f, ry + 12.f}};
-                ccColor4F col = open ? ccColor4F{232.f / 255, 58.f / 255, 107.f / 255, 1.f} : ccColor4F{0.47f, 0.47f, 0.5f, 1.f};
+                ccColor4F col = open ? ccColor4F{ACCENT.r / 255.f, ACCENT.g / 255.f, ACCENT.b / 255.f, 1.f} : ccColor4F{0.47f, 0.47f, 0.47f, 1.f};
                 tri->drawPolygon(pts, 3, col, 0.f, col);
                 node->addChild(tri, 4);
                 m_hits.push_back({wl.id, (int)r, -1, {wl.box.x + w - 16.f, wl.box.y + ry, 16.f, ROW_H}});

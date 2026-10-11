@@ -74,7 +74,7 @@ class $modify(XeniaClickerLayer, GJBaseGameLayer) {
         }
     }
 
-    void processCommands(float dt, bool isHalfTick, bool isLastTick) override {
+    void processCommands(float dt, bool isHalfTick, bool isLastTick) {
         auto const& state = xenia::State::get();
         bool const isPlay = typeinfo_cast<PlayLayer*>(this) != nullptr && !isHalfTick;
 
@@ -97,7 +97,7 @@ class $modify(XeniaClickerLayer, GJBaseGameLayer) {
 };
 
 class $modify(XeniaClickerPlay, PlayLayer) {
-    void resetLevel() override {
+    void resetLevel() {
         PlayLayer::resetLevel();
     }
 };

@@ -53,9 +53,6 @@ namespace xenia::bot {
         static geode::Result<void> load(std::string_view name);
         static geode::Result<void> save();
 
-        static geode::async::Task<geode::Result<void>> loadAsync(std::string name);
-        static geode::async::Task<geode::Result<void>> saveAsync();
-
         static bool hasCurrent();
         static Macro& current();
         static std::string info();

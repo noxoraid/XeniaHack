@@ -743,7 +743,7 @@ void XeniaMenu::onMacroReplay(CCObject*) {
         if (!name.empty()) {
 
             if (st.bot == xenia::BotMode::Record) xenia::bot::flush();
-            if (auto res = xenia::bot::MacroManager::load(name); !res.ok()) {
+            if (auto res = xenia::bot::MacroManager::load(name); res.isErr()) {
                 XeniaDialog::info("Replay", res.unwrapErr());
             }
             xenia::bot::requestSync();
@@ -755,7 +755,7 @@ void XeniaMenu::onMacroReplay(CCObject*) {
 void XeniaMenu::onMacroCreate(CCObject*) {
     Ref<XeniaMenu> self = this;
     XeniaDialog::input("Create Macro", xenia::tr("New macro name (NXR format)", "Nama makro baru (format NXR)"), "", [self](std::string const& name) -> std::string {
-        if (auto res = xenia::bot::MacroManager::create(name); !res.ok()) {
+        if (auto res = xenia::bot::MacroManager::create(name); res.isErr()) {
             return res.unwrapErr();
         }
         auto& st = xenia::State::get();
@@ -770,7 +770,7 @@ void XeniaMenu::onMacroDelete(CCObject*) {
     Ref<XeniaMenu> self = this;
     XeniaMacroPicker::open("Delete Macro", xenia::tr("Delete", "Hapus"), xenia::State::get().macroName, false, [self](std::string const& name) {
         XeniaDialog::confirm("Delete Macro", xenia::trf("Delete macro \"{}\"? This cannot be undone.", "Hapus makro \"{}\"? Tidak bisa dibatalkan.", name), [self, name] {
-            if (auto res = xenia::bot::MacroManager::remove(name); !res.ok()) {
+            if (auto res = xenia::bot::MacroManager::remove(name); res.isErr()) {
                 return XeniaDialog::info("Delete Macro", res.unwrapErr());
             }
             auto& st = xenia::State::get();
@@ -786,7 +786,7 @@ void XeniaMenu::onMacroRename(CCObject*) {
     Ref<XeniaMenu> self = this;
     XeniaMacroPicker::open("Rename Macro", xenia::tr("Rename", "Ganti"), xenia::State::get().macroName, false, [self](std::string const& old) {
         XeniaDialog::input("Rename Macro", xenia::tr("New name", "Nama baru"), old, [self, old](std::string const& name) -> std::string {
-            if (auto res = xenia::bot::MacroManager::rename(old, name); !res.ok()) {
+            if (auto res = xenia::bot::MacroManager::rename(old, name); res.isErr()) {
                 return res.unwrapErr();
             }
             auto& st = xenia::State::get();
@@ -802,7 +802,7 @@ void XeniaMenu::onMacroLoad(CCObject*) {
     Ref<XeniaMenu> self = this;
     XeniaMacroPicker::open("Load Macro", xenia::tr("Load", "Muat"), xenia::State::get().macroName, false, [self](std::string const& name) {
         if (xenia::State::get().bot == xenia::BotMode::Record) xenia::bot::flush();
-        if (auto res = xenia::bot::MacroManager::load(name); !res.ok()) {
+        if (auto res = xenia::bot::MacroManager::load(name); res.isErr()) {
             return XeniaDialog::info("Load Macro", res.unwrapErr());
         }
         auto& st = xenia::State::get();
@@ -824,7 +824,7 @@ void XeniaMenu::onMacroSave(CCObject*) {
     xenia::bot::commitIfIdle();
     auto res = xenia::bot::MacroManager::save();
     xenia::bot::markSaved();
-    if (!res.ok()) {
+    if (res.isErr()) {
         return XeniaDialog::info("Save Macro", res.unwrapErr());
     }
     auto& m = xenia::bot::MacroManager::current();

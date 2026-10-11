@@ -37,7 +37,7 @@ class $modify(XeniaSlideLayer, GJBaseGameLayer) {
         }
     }
 
-    void processCommands(float dt, bool isHalfTick, bool isLastTick) override {
+    void processCommands(float dt, bool isHalfTick, bool isLastTick) {
         auto const& state = xenia::State::get();
         bool const isPlay = typeinfo_cast<PlayLayer*>(this) != nullptr && !isHalfTick;
 
@@ -61,7 +61,7 @@ class $modify(XeniaSlideLayer, GJBaseGameLayer) {
 };
 
 class $modify(XeniaSlidePlay, PlayLayer) {
-    void destroyPlayer(PlayerObject* player, GameObject* object) override {
+    void destroyPlayer(PlayerObject* player, GameObject* object) {
         auto const& state = xenia::State::get();
         if (state.waveSlideOn() && player && player->m_isDart && object && object != m_anticheatSpike
             && object->m_objectType == GameObjectType::Solid) {
@@ -72,7 +72,7 @@ class $modify(XeniaSlidePlay, PlayLayer) {
         PlayLayer::destroyPlayer(player, object);
     }
 
-    void resetLevel() override {
+    void resetLevel() {
         PlayLayer::resetLevel();
     }
 };

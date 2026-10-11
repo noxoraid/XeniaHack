@@ -9,7 +9,7 @@ $on_mod(Loaded) {
     state.load();
 
     if (!state.macroName.empty()) {
-        if (auto res = xenia::bot::MacroManager::load(state.macroName); !res.ok()) {
+        if (auto res = xenia::bot::MacroManager::load(state.macroName); res.isErr()) {
             log::warn("Default macro '{}' could not be loaded: {}", state.macroName, res.unwrapErr());
         }
     }

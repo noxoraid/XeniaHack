@@ -11,7 +11,7 @@ using namespace geode::prelude;
 using DeltaType = decltype(std::declval<GJBaseGameLayer&>().getModifiedDelta(0.f));
 
 class $modify(XeniaTps, GJBaseGameLayer) {
-    DeltaType getModifiedDelta(float dt) override {
+    DeltaType getModifiedDelta(float dt) {
         double const tps = xenia::bot::effectiveTps();
         if (!typeinfo_cast<PlayLayer*>(this) || std::abs(tps - 240.0) < 1e-9) {
             return GJBaseGameLayer::getModifiedDelta(dt);

@@ -92,7 +92,7 @@ class $modify(XeniaStraightLayer, GJBaseGameLayer) {
         player->m_yVelocity = 0.0;
     }
 
-    void processCommands(float dt, bool isHalfTick, bool isLastTick) override {
+    void processCommands(float dt, bool isHalfTick, bool isLastTick) {
         auto const& state = xenia::State::get();
         bool const isPlay = typeinfo_cast<PlayLayer*>(this) != nullptr && !isHalfTick;
         bool const active = isPlay && (state.straightShipOn() || state.straightWaveOn());
@@ -125,7 +125,7 @@ class $modify(XeniaStraightLayer, GJBaseGameLayer) {
 };
 
 class $modify(XeniaStraightPlay, PlayLayer) {
-    void resetLevel() override {
+    void resetLevel() {
         PlayLayer::resetLevel();
     }
 };

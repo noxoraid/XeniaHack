@@ -287,7 +287,7 @@ namespace xenia::bot {
 
             if (g_engine.dirty) {
                 g_engine.dirty = false;
-                if (auto res = MacroManager::save(); !res.ok()) {
+                if (auto res = MacroManager::save(); res.isErr()) {
                     log::error("Macro auto-save failed: {}", res.unwrapErr());
                 }
             }
@@ -389,14 +389,14 @@ namespace xenia::bot {
 
         if (!g_engine.dirty) return;
         g_engine.dirty = false;
-        if (auto res = MacroManager::save(); !res.ok()) {
+        if (auto res = MacroManager::save(); res.isErr()) {
             log::error("Macro flush save failed: {}", res.unwrapErr());
         }
     }
 }
 
 class $modify(XeniaBotLayer, GJBaseGameLayer) {
-    void update(float dt) override {
+    void update(float dt) {
         if (typeinfo_cast<PlayLayer*>(this)) {
             g_engine.frameTimeAccumulator += dt;
             g_engine.updateTicks++;
@@ -412,7 +412,7 @@ class $modify(XeniaBotLayer, GJBaseGameLayer) {
         GJBaseGameLayer::update(dt);
     }
 
-    void processCommands(float dt, bool isHalfTick, bool isLastTick) override {
+    void processCommands(float dt, bool isHalfTick, bool isLastTick) {
         bool const inLevel = typeinfo_cast<PlayLayer*>(this) != nullptr;
         auto const& s = xenia::State::get();
         bool const fullTick = inLevel && !isHalfTick;
@@ -476,7 +476,7 @@ class $modify(XeniaBotLayer, GJBaseGameLayer) {
         }
     }
 
-    void handleButton(bool down, int button, bool isPlayer1) override {
+    void handleButton(bool down, int button, bool isPlayer1) {
         if (down && button == 1) {
             g_engine.clickWindow++;
             g_engine.stats.clicks++;
@@ -517,7 +517,7 @@ class $modify(XeniaBotLayer, GJBaseGameLayer) {
 };
 
 class $modify(XeniaBotPlay, PlayLayer) {
-    void resetLevel() override {
+    void resetLevel() {
         PlayLayer::resetLevel();
         auto const& s = xenia::State::get();
 
@@ -526,19 +526,19 @@ class $modify(XeniaBotPlay, PlayLayer) {
         }
         xenia::bot::syncCbf();
 
-        int const levelId = m_level ? static_cast<int>(m_level->m_levelID.value_or(0)) : 0;
+        int const levelId = m_level ? static_cast<int>(m_level->m_levelID.value()) : 0;
         std::string const levelName = m_level ? std::string(m_level->m_levelName) : std::string();
 
         xenia::bot::onReset(static_cast<int>(m_gameState.m_currentProgress), levelId, levelName);
     }
 
-    void levelComplete() override {
+    void levelComplete() {
         xenia::bot::commitLevelComplete();
         xenia::bot::flush();
         PlayLayer::levelComplete();
     }
 
-    void onQuit() override {
+    void onQuit() {
         xenia::bot::flush();
         xenia::bot::restoreCbf();
         xenia::bot::resetRuntime();
