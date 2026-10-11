@@ -11,6 +11,7 @@ namespace xenia::ui::platform {
 #endif
     constexpr float kDragSlop = cur::kDragSlop;
     constexpr float kWheelStep = cur::kWheelStep;
+    constexpr int kDefaultTheme = cur::kDefaultTheme;
     constexpr int kDefaultUiMode = cur::kDefaultUiMode;
     constexpr bool kHasKeyboard = cur::kHasKeyboard;
 }

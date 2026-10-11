@@ -35,7 +35,9 @@ namespace xenia::ui {
     CCNode* makeSlice(char const* png, float w, float h, float corner, float insetFrac) {
         auto node = CCNode::create();
         node->setContentSize({w, h});
-        auto probe = loadSprite(png);
+        std::string skin = png;
+        if (currentTheme(State::get().theme).red) skin = "red_" + skin;
+        auto probe = loadSprite(skin.c_str());
         auto tex = probe->getTexture();
         if (!tex) return node;
         auto r = probe->getTextureRect();

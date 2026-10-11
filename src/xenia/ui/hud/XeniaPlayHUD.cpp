@@ -5,6 +5,7 @@
 #include "xenia/core/Theme.hpp"
 #include "xenia/bot/Bot.hpp"
 #include "xenia/ui/widgets/Widgets.hpp"
+#include "xenia/ui/hud/XeniaClickIndicator.hpp"
 using namespace geode::prelude;
 namespace ui = xenia::ui;
 
@@ -44,6 +45,8 @@ class $modify(XeniaPlayHUD, UILayer) {
         m_fields->stats->setPosition({kStepLeft, CCDirector::get()->getWinSize().height - 60.f});
         m_fields->stats->setOpacity(170);
         this->addChild(m_fields->stats, 100);
+
+        if (auto ci = xenia::ui::ClickIndicator::create()) this->addChild(ci, 99);
 
         this->schedule(schedule_selector(XeniaPlayHUD::tick), 0.05f);
         tick(0.f);

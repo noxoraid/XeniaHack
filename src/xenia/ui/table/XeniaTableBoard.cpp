@@ -41,7 +41,7 @@ namespace {
     ccColor4B const C_SCROLL{232, 58, 107, 150};
 
     enum WinId { WPlayer = 0, WBot = 1, WMacro = 2, WUtils = 3, WStats = 4, WSettings = 5 };
-    enum GearId { GSpeed = 10, GTps = 11, GShip = 12, GWave = 13, GClicker = 14, GSlide = 15 };
+    enum GearId { GSpeed = 10, GTps = 11, GShip = 12, GWave = 13, GClicker = 14, GSlide = 15, GIndicator = 16 };
 
     std::set<int> s_open;
     float s_scrollX = 0.f, s_scrollY = 0.f;
@@ -462,6 +462,34 @@ void XeniaTableBoard::buildWindows() {
         w.rows.push_back(numRow("Bot Speed", st.botSpeed, xenia::State::kMinSpeed, xenia::State::kMaxSpeed, 8));
         w.rows.push_back(boolRow("CBF Bypass", st.cbfBypass, xenia::tr("While the bot is active, Click Between Frames is paused so bot inputs stay accurate.", "Saat bot aktif, mod Click Between Frames dimatikan sementara agar input bot akurat."), -1, [] { xenia::bot::syncCbf(); }));
         w.rows.push_back(boolRow("Particle Fixed", st.particleFixed, xenia::tr("While the bot is active, leftover physics delta is dropped on every attempt so frame timing stays identical.", "Saat bot aktif, sisa delta fisika dibuang tiap attempt agar timing frame identik.")));
+        w.rows.push_back(boolRow("Click Indicator", st.clickInd, xenia::tr("Shows the clicks from the loaded .nxr on the left while the bot is playing. Tap the arrow for options.", "Tampilkan klik dari .nxr di sisi kiri saat bot Playback. Ketuk panah untuk pengaturan."), GIndicator));
+        if (s_open.count(GIndicator)) {
+            w.rows.push_back(mkMulti({
+                mkToggle("Line", [] { return xenia::State::get().ciMode == 0; }, [this] {
+                    xenia::State::get().ciMode = 0; xenia::State::get().save(); refreshLive();
+                }, xenia::tr("Fixed hit line at the bottom; clicks fall onto it.", "Garis hit tetap di bawah; klik turun ke garis."), true),
+                mkToggle("Follow Zone", [] { return xenia::State::get().ciMode == 1; }, [this] {
+                    xenia::State::get().ciMode = 1; xenia::State::get().save(); refreshLive();
+                }, xenia::tr("A zone box that follows the next click down to the hit.", "Kotak zone yang mengikuti klik berikutnya sampai kena."), true),
+            }));
+            w.rows.push_back(subBool(xenia::tr("Perfect Text", "Teks Perfect"), st.ciPerfectOn, xenia::tr("Show a green Perfect on every hit.", "Tampilkan Perfect hijau tiap kena.")));
+            w.rows.push_back(numRow("Note R", st.ciNote[0], 0, 255, 3));
+            w.rows.push_back(numRow("Note G", st.ciNote[1], 0, 255, 3));
+            w.rows.push_back(numRow("Note B", st.ciNote[2], 0, 255, 3));
+            w.rows.push_back(numRow("Line R", st.ciLine[0], 0, 255, 3));
+            w.rows.push_back(numRow("Line G", st.ciLine[1], 0, 255, 3));
+            w.rows.push_back(numRow("Line B", st.ciLine[2], 0, 255, 3));
+            w.rows.push_back(numRow("Perfect R", st.ciPerfect[0], 0, 255, 3));
+            w.rows.push_back(numRow("Perfect G", st.ciPerfect[1], 0, 255, 3));
+            w.rows.push_back(numRow("Perfect B", st.ciPerfect[2], 0, 255, 3));
+            w.rows.push_back(numRow("Pos X", st.ciX, 0.0, 1000.0, 5));
+            w.rows.push_back(numRow("Pos Y", st.ciY, 0.0, 1000.0, 5));
+            w.rows.push_back(numRow(xenia::tr("Length", "Panjang"), st.ciLen, 40.0, 400.0, 5));
+            w.rows.push_back(numRow(xenia::tr("Width", "Lebar"), st.ciW, 4.0, 80.0, 5));
+            w.rows.push_back(numRow(xenia::tr("Ahead (s)", "Awal (dtk)"), st.ciAhead, 0.2, 5.0, 4));
+            w.rows.push_back(numRow(xenia::tr("Opacity", "Opasitas"), st.ciOpacity, 0.1, 1.0, 4));
+            w.rows.push_back(numRow(xenia::tr("Text size", "Ukuran teks"), st.ciTextSize, 0.2, 1.2, 4));
+        }
     }
 
     {

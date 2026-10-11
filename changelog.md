@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Added **Click Indicator** (Bot window): reads clicks from the loaded `.nxr` and draws them falling on the left side during Playback. Two styles: **Line** and **Follow Zone**. Custom colors, position, size, speed and a green **Perfect** on every hit
+- Added a **Red** theme (red panel, card and box sprites) and made it the default on Android; Windows keeps Aurora
 - Added a language selector (English / Indonesian) in Settings for both the Table and Panel layouts
 - Whole interface, popups, status messages and macro errors are now English by default
 - Refreshed the look: new navy and teal palette for every sprite in `resources/`, new logo, matching colors in the Table layout

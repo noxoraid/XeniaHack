@@ -1,3 +1,4 @@
+#include "xenia/ui/Platform.hpp"
 #include "xenia/core/Lang.hpp"
 #include "xenia/ui/menu/XeniaMenu.hpp"
 #include "xenia/ui/widgets/XeniaScrollbar.hpp"
@@ -928,7 +929,7 @@ void XeniaMenu::onFontNext(CCObject*) {
 
 void XeniaMenu::onResetUI(CCObject*) {
     auto& st = xenia::State::get();
-    st.uiScale = 1.f; st.uiOpacity = 1.f; st.textScale = 1.f; st.logoSize = 24.f; st.fontIdx = 0; st.theme = 0;
+    st.uiScale = 1.f; st.uiOpacity = 1.f; st.textScale = 1.f; st.logoSize = 24.f; st.fontIdx = 0; st.theme = xenia::ui::platform::kDefaultTheme;
     XeniaOverlay::refresh();
     st.save();
     applyScale();

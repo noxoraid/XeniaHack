@@ -20,7 +20,7 @@ namespace xenia {
         speedhack = m->getSavedValue<bool>("speedhack", false);
         speed = d(m->getSavedValue<double>("speed", 1.0), kMinSpeed, kMaxSpeed, 1.0);
         botSpeed = d(m->getSavedValue<double>("botSpeed", 1.0), kMinSpeed, kMaxSpeed, 1.0);
-        theme = std::clamp(m->getSavedValue<int>("theme", 0), 0, 3);
+        theme = std::clamp(m->getSavedValue<int>("theme", xenia::ui::platform::kDefaultTheme), 0, 4);
         uiMode = std::clamp(m->getSavedValue<int>("uiMode", xenia::ui::platform::kDefaultUiMode), 0, 1);
         lang = std::clamp(m->getSavedValue<int>("lang", 0), 0, 1);
         tableOrder = m->getSavedValue<std::string>("tableOrder", "");
@@ -63,6 +63,22 @@ namespace xenia {
         waveSlide = m->getSavedValue<bool>("waveSlide", false);
         slideReal = m->getSavedValue<bool>("slideReal", true);
         slideCps = d(m->getSavedValue<double>("slideCps", 12.0), kMinCps, kMaxCps, 12.0);
+
+        clickInd = m->getSavedValue<bool>("clickInd", false);
+        ciMode = std::clamp(m->getSavedValue<int>("ciMode", 0), 0, 1);
+        for (int i = 0; i < 3; i++) {
+            ciNote[i] = std::clamp(m->getSavedValue<int>(fmt::format("ciNote{}", i), i == 0 ? 232 : i == 1 ? 58 : 107), 0, 255);
+            ciLine[i] = std::clamp(m->getSavedValue<int>(fmt::format("ciLine{}", i), 255), 0, 255);
+            ciPerfect[i] = std::clamp(m->getSavedValue<int>(fmt::format("ciPerfect{}", i), i == 0 ? 80 : i == 1 ? 255 : 120), 0, 255);
+        }
+        ciPerfectOn = m->getSavedValue<bool>("ciPerfectOn", true);
+        ciX = d(m->getSavedValue<double>("ciX", 28.0), 0.0, 1000.0, 28.0);
+        ciY = d(m->getSavedValue<double>("ciY", 44.0), 0.0, 1000.0, 44.0);
+        ciLen = d(m->getSavedValue<double>("ciLen", 150.0), 40.0, 400.0, 150.0);
+        ciW = d(m->getSavedValue<double>("ciW", 14.0), 4.0, 80.0, 14.0);
+        ciAhead = d(m->getSavedValue<double>("ciAhead", 0.8), 0.2, 5.0, 0.8);
+        ciOpacity = d(m->getSavedValue<double>("ciOpacity", 0.9), 0.1, 1.0, 0.9);
+        ciTextSize = d(m->getSavedValue<double>("ciTextSize", 0.45), 0.2, 1.2, 0.45);
 
         statsMask = std::clamp(m->getSavedValue<int>("statsMask", StatFps | StatTps | StatFrame | StatInput | StatBot), 0, (1 << kStatCount) - 1);
     }
@@ -116,6 +132,22 @@ namespace xenia {
         m->setSavedValue<bool>("waveSlide", waveSlide);
         m->setSavedValue<bool>("slideReal", slideReal);
         m->setSavedValue<double>("slideCps", slideCps);
+
+        m->setSavedValue<bool>("clickInd", clickInd);
+        m->setSavedValue<int>("ciMode", ciMode);
+        for (int i = 0; i < 3; i++) {
+            m->setSavedValue<int>(fmt::format("ciNote{}", i), ciNote[i]);
+            m->setSavedValue<int>(fmt::format("ciLine{}", i), ciLine[i]);
+            m->setSavedValue<int>(fmt::format("ciPerfect{}", i), ciPerfect[i]);
+        }
+        m->setSavedValue<bool>("ciPerfectOn", ciPerfectOn);
+        m->setSavedValue<double>("ciX", ciX);
+        m->setSavedValue<double>("ciY", ciY);
+        m->setSavedValue<double>("ciLen", ciLen);
+        m->setSavedValue<double>("ciW", ciW);
+        m->setSavedValue<double>("ciAhead", ciAhead);
+        m->setSavedValue<double>("ciOpacity", ciOpacity);
+        m->setSavedValue<double>("ciTextSize", ciTextSize);
 
         m->setSavedValue<int>("statsMask", statsMask);
     }

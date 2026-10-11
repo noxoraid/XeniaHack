@@ -64,6 +64,19 @@ namespace xenia {
         bool slideReal = true;
         double slideCps = 12.0;
 
+        // Click indicator (dari .nxr, saat Playback)
+        bool clickInd = false;
+        int ciMode = 0;                       // 0 = Line, 1 = Follow Zone
+        int ciNote[3] = {232, 58, 107};       // warna note/klik
+        int ciLine[3] = {255, 255, 255};      // warna garis / zone
+        int ciPerfect[3] = {80, 255, 120};    // warna tulisan Perfect
+        bool ciPerfectOn = true;
+        double ciX = 28.0, ciY = 44.0;        // posisi lane (kiri-bawah)
+        double ciLen = 150.0, ciW = 14.0;     // panjang & lebar lane
+        double ciAhead = 0.8;                 // detik klik terlihat sebelum kena
+        double ciOpacity = 0.9;
+        double ciTextSize = 0.45;
+
         int statsMask = StatFps | StatTps | StatFrame | StatInput | StatBot;
 
         bool noclipOn() const { return noclip && !safeMode; }

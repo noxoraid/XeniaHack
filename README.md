@@ -11,6 +11,7 @@ It started as a small noclip and speedhack menu and grew into a macro bot with i
 - Noclip, Speedhack (0.1x to 1000x) and TPS Bypass
 - Macro bot: record and play back `.nxr` files, with a speed clock and frame stepper in the level
 - Straight Ship, Straight Wave, Auto Clicker and Wave Slide
+- Click Indicator: clicks from the `.nxr` fall on the left side (Line or Follow Zone) with a green Perfect on every hit
 - Stats HUD (FPS, TPS, frame, inputs, CPS, position and more)
 - Two menu layouts, adjustable UI scale, opacity, fonts and logo size
 - English and Indonesian interface (Settings, Language)
