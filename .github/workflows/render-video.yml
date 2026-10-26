@@ -1,0 +1,114 @@
+name: Render Video
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: render-video-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.1.0
+        with:
+          node-version: 20
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.3.0
+        with:
+          python-version: '3.11'
+
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg zip unzip fonts-noto-cjk \
+            libnss3 libdbus-1-3 libatk1.0-0 libatk-bridge2.0-0 libasound2t64 libxrandr2 \
+            libxkbcommon-x11-0 libxfixes3 libxcomposite1 libxdamage1 libgbm-dev libcups2
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Install Piper
+        run: pip install piper-tts==1.2.0
+
+      - name: Generate voice-over and music
+        run: |
+          bash scripts/audio.sh
+          for f in vo-1 vo-2 vo-3 vo-4 vo-5 vo-6 music; do
+            [ -s "public/audio/$f.wav" ] || { echo "::error::public/audio/$f.wav tidak ada atau kosong"; exit 1; }
+          done
+
+      - name: Prepare browser
+        run: npx remotion browser ensure
+
+      - name: Render video
+        run: |
+          mkdir -p dist
+          npm run render
+
+      - name: Verify video
+        run: |
+          f=dist/japanese-promo.mp4
+          [ -s "$f" ] || { echo "::error::Render gagal: $f tidak ada atau kosong"; exit 1; }
+          probe() { ffprobe -v error "$@" -of csv=p=0 "$f"; }
+          dur=$(probe -show_entries format=duration)
+          vcodec=$(probe -select_streams v:0 -show_entries stream=codec_name)
+          width=$(probe -select_streams v:0 -show_entries stream=width)
+          height=$(probe -select_streams v:0 -show_entries stream=height)
+          rate=$(probe -select_streams v:0 -show_entries stream=r_frame_rate)
+          acodec=$(probe -select_streams a:0 -show_entries stream=codec_name)
+          [ "$vcodec" = "h264" ] || { echo "::error::Codec video $vcodec, seharusnya h264"; exit 1; }
+          [ "${width}x${height}" = "1920x1080" ] || { echo "::error::Resolusi ${width}x${height}"; exit 1; }
+          [ "$rate" = "30/1" ] || { echo "::error::FPS $rate"; exit 1; }
+          [ "$acodec" = "aac" ] || { echo "::error::Audio ${acodec:-tidak ada}, seharusnya aac"; exit 1; }
+          awk -v d="$dur" 'BEGIN { exit !(d >= 29.9 && d <= 30.2) }' || { echo "::error::Durasi $dur detik"; exit 1; }
+          size=$(du -h "$f" | cut -f1)
+          {
+            echo "### Render berhasil"
+            echo ""
+            echo "| Properti | Nilai |"
+            echo "| --- | --- |"
+            echo "| File | japanese-promo.mp4 |"
+            echo "| Ukuran | $size |"
+            echo "| Durasi | ${dur}s |"
+            echo "| Resolusi | ${width}x${height} @ ${rate} |"
+            echo "| Codec | ${vcodec} / ${acodec} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create ZIP
+        run: |
+          (cd dist && zip -j japanese-promo.zip japanese-promo.mp4)
+          unzip -t dist/japanese-promo.zip
+          unzip -l dist/japanese-promo.zip | grep -q japanese-promo.mp4
+
+      - name: Upload MP4
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: japanese-promo-mp4
+          path: dist/japanese-promo.mp4
+          if-no-files-found: error
+          compression-level: 0
+
+      - name: Upload ZIP
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: japanese-promo-zip
+          path: dist/japanese-promo.zip
+          if-no-files-found: error
+          compression-level: 0

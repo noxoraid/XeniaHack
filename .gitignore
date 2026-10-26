@@ -1,0 +1,8 @@
+node_modules
+.next
+dist
+out
+.cache
+public/audio
+next-env.d.ts
+*.tsbuildinfo
