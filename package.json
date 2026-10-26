@@ -1,10 +1,10 @@
 {
-  "name": "renn-x-japan-promo",
-  "version": "1.0.0",
+  "name": "renn-x-japan-landscape",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "studio": "remotion studio src/index.ts",
-    "render": "remotion render src/index.ts RennXJapan out/renn-x-japan.mp4"
+    "render": "remotion render src/index.ts RennXJapanLandscape out/renn-x-japan-landscape.mp4"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.250",

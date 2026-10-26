@@ -1,10 +1,11 @@
-# Renn X Japan — Video Promosi (29 detik)
+# Renn X Japan — Video Promosi Landscape
 
-Remotion, 1080x1920, 30 fps, 870 frame. Musik dari public/musik.mp3 (fade in dan fade out).
+Remotion, 1920x1080, 60 fps, 1740 frame (29 detik). Musik dari public/musik.mp3.
+
+Alur: bola naik, jatuh menghentak, 12 lingkaran muncul, hook, brand, fitur, hiragana, progres, koleksi, penutup.
+Pergantian scene dan momen penting disinkronkan ke ketukan musik.
 
 Preview: `npm install` lalu `npm run studio`
-Render lokal: `npm run render` (hasil di out/renn-x-japan.mp4)
+Render lokal: `npm run render` (hasil di out/renn-x-japan-landscape.mp4)
 
 Push ke branch main: GitHub Action merender otomatis, lalu mengunggah zip sebagai Artifact dan Release.
-
-Ganti screenshot: timpa file di public/ dengan nama sama. Atur potongan lewat prop `box` di src/scenes.

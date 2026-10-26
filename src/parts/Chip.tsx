@@ -5,36 +5,37 @@ import {fonts, palette} from '../theme';
 type Props = {
   label: string;
   top: number;
-  side: 'left' | 'right';
-  offset: number;
+  left: number;
   delay: number;
+  from?: 'left' | 'right';
 };
 
-export const Chip = ({label, top, side, offset, delay}: Props) => {
+export const Chip = ({label, top, left, delay, from = 'right'}: Props) => {
   const frame = useCurrentFrame();
-  const enter = useSpring(delay, 36);
-  const direction = side === 'left' ? -1 : 1;
-  const float = Math.sin((frame + delay * 3) / 18) * 7;
+  const enter = useSpring(delay, 50);
+  const direction = from === 'left' ? -1 : 1;
+  const float = Math.sin((frame + delay * 3) / 34) * 8;
 
   return (
     <span
       style={{
         position: 'absolute',
         top,
-        [side]: offset,
-        padding: '22px 42px 22px 78px',
+        left,
+        padding: '20px 40px 20px 72px',
         borderRadius: 999,
         whiteSpace: 'nowrap',
-        fontFamily: fonts.sans,
-        fontWeight: 700,
-        fontSize: 30,
+        fontFamily: fonts.display,
+        fontWeight: 600,
+        fontSize: 26,
+        letterSpacing: '-0.01em',
         color: palette.ink,
-        backgroundColor: 'rgba(255,255,255,0.94)',
-        backgroundImage: `radial-gradient(circle at 42px 50%, ${palette.mint} 9px, transparent 10px)`,
+        backgroundColor: 'rgba(255,255,255,0.95)',
+        backgroundImage: `radial-gradient(circle at 38px 50%, ${palette.mint} 9px, transparent 10px)`,
         border: `1px solid ${palette.line}`,
-        boxShadow: '0 24px 50px -22px rgba(11,14,12,0.35)',
+        boxShadow: '0 28px 56px -24px rgba(11,14,12,0.4)',
         opacity: enter,
-        transform: `translate(${direction * 90 * (1 - enter)}px, ${float}px)`,
+        transform: `translate(${direction * 100 * (1 - enter)}px, ${float}px)`,
       }}
     >
       {label}

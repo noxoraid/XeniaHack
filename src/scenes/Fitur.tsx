@@ -1,28 +1,42 @@
-import {Scene} from '../parts/Scene';
 import {Heading} from '../parts/Heading';
-import {Crop} from '../parts/Crop';
+import {Phone} from '../parts/Phone';
+import {Satellites} from '../parts/Satellites';
+import {FeatureList} from '../parts/FeatureList';
 import {Chip} from '../parts/Chip';
 import {timeline} from '../theme';
 
-const lines = [{text: 'Enam jalur,'}, {text: 'satu tujuan.', accent: true}];
+const lines = [{text: 'Enam jalur'}, {text: 'satu tujuan.', accent: true}];
+const features = [
+  'Hiragana & Katakana',
+  'Kosakata Bab 1 & 2',
+  'Minna No Nihongo 1',
+  'Minna No Nihongo 2',
+  'Kanji dasar',
+  'Bunpou',
+];
 
 export const Fitur = () => (
-  <Scene duration={timeline.fitur.duration}>
-    <Heading
-      index="02"
-      label="FITUR UTAMA"
-      lines={lines}
-      sub="Hiragana, Katakana, Minna No Nihongo, Kanji, hingga Bunpou."
-    />
-    <Crop
+  <>
+    <Satellites cx={1464} cy={540} radius={470} start={10} disc />
+    <Phone
       src="beranda.jpg"
-      box={{x: 0, y: 660, w: 704, h: 685}}
-      top={790}
+      left={1230}
+      top={99}
+      width={468}
       duration={timeline.fitur.duration}
-      zoom={[1, 1.08]}
+      zoom={[1.3, 1.34]}
+      focusY={[700, 1000]}
     />
-    <Chip label="Hiragana & Katakana" top={830} side="right" offset={40} delay={40} />
-    <Chip label="Minna No Nihongo 1 & 2" top={1190} side="left" offset={40} delay={56} />
-    <Chip label="Kanji & Bunpou" top={1540} side="right" offset={60} delay={72} />
-  </Scene>
+    <Heading
+      eyebrow="01 — FITUR UTAMA"
+      lines={lines}
+      sub="Semua materi belajar bahasa Jepang, rapi dalam satu beranda."
+      left={120}
+      top={170}
+      width={860}
+      size={104}
+    />
+    <FeatureList items={features} left={120} top={630} width={800} columns={2} delay={56} />
+    <Chip label="6 fitur utama" top={190} left={1020} delay={70} from="left" />
+  </>
 );

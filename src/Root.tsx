@@ -4,7 +4,7 @@ import {canvas} from './theme';
 
 export const Root = () => (
   <Composition
-    id="RennXJapan"
+    id="RennXJapanLandscape"
     component={Promo}
     width={canvas.width}
     height={canvas.height}

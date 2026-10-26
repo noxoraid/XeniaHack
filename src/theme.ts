@@ -1,9 +1,8 @@
-import {loadFont as loadSerif} from '@remotion/google-fonts/CormorantGaramond';
-import {loadFont as loadSans} from '@remotion/google-fonts/Manrope';
+import {loadFont as loadDisplay} from '@remotion/google-fonts/Sora';
+import {loadFont as loadText} from '@remotion/google-fonts/Manrope';
 
-const serif = loadSerif('normal', {weights: ['500', '600', '700'], subsets: ['latin']});
-loadSerif('italic', {weights: ['500', '600'], subsets: ['latin']});
-const sans = loadSans('normal', {weights: ['500', '600', '700'], subsets: ['latin']});
+const display = loadDisplay('normal', {weights: ['600', '700', '800'], subsets: ['latin']});
+const text = loadText('normal', {weights: ['500', '600', '700'], subsets: ['latin']});
 
 export const palette = {
   paper: '#FAFAF7',
@@ -16,17 +15,19 @@ export const palette = {
 };
 
 export const fonts = {
-  serif: serif.fontFamily,
-  sans: sans.fontFamily,
+  display: display.fontFamily,
+  text: text.fontFamily,
 };
 
-export const canvas = {width: 1080, height: 1920, fps: 30, frames: 870};
+export const canvas = {width: 1920, height: 1080, fps: 60, frames: 1740};
 
 export const timeline = {
-  intro: {from: 0, duration: 135},
-  beranda: {from: 135, duration: 150},
-  fitur: {from: 285, duration: 150},
-  hiragana: {from: 435, duration: 150},
-  profil: {from: 585, duration: 150},
-  outro: {from: 735, duration: 135},
+  opening: {from: 0, duration: 552},
+  fitur: {from: 552, duration: 267},
+  hiragana: {from: 819, duration: 264},
+  progres: {from: 1083, duration: 249},
+  koleksi: {from: 1332, duration: 196},
+  penutup: {from: 1528, duration: 212},
 };
+
+export const cuts = [552, 819, 1083, 1332, 1528];
