@@ -9,3 +9,5 @@ Preview: `npm install` lalu `npm run studio`
 Render lokal: `npm run render` (hasil di out/renn-x-japan-landscape.mp4)
 
 Push ke branch main: GitHub Action merender otomatis, lalu mengunggah zip sebagai Artifact dan Release.
+
+Hasil render ada dua: renn-x-japan-landscape-30fps.mp4 (ringan, aman untuk HP) dan renn-x-japan-landscape.mp4 (60 fps).
