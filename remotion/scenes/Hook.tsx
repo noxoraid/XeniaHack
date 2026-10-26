@@ -1,45 +1,34 @@
 import { AbsoluteFill, interpolate, interpolateColors, spring, useCurrentFrame, useVideoConfig } from 'remotion';
-import { clamp, color, font, smooth } from '../theme';
+import { beat, brand, clamp, color, font, smooth } from '../theme';
+import { Glow } from '../ui';
 
 const glyphs = [...'日本語を学ぼう'];
 
-export const Hook = () => {
+export const Hook = ({ offset }: { offset: number }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-
-  const shift = interpolate(frame, [98, 140], [0, 1], { ...clamp, easing: smooth });
-  const bg = interpolateColors(shift, [0, 1], [color.ink, color.paper]);
-  const fg = interpolateColors(shift, [0, 1], [color.paper, color.ink]);
-  const zoom = interpolate(frame, [0, 150], [1, 1.08]);
-  const sun = spring({ frame: frame - 6, fps, durationInFrames: 80, config: { damping: 200 } });
-  const rule = interpolate(frame, [18, 74], [0, 1], { ...clamp, easing: smooth });
-  const sub = interpolate(frame, [64, 100], [0, 1], { ...clamp, easing: smooth });
+  const pulse = beat(frame + offset);
+  const shift = interpolate(frame, [86, 124], [0, 1], { ...clamp, easing: smooth });
+  const bg = interpolateColors(shift, [0, 1], [color.ink, color.light]);
+  const fg = interpolateColors(shift, [0, 1], [color.white, color.text]);
+  const zoom = interpolate(frame, [0, 135], [1, 1.07]);
+  const bar = interpolate(frame, [30, 74], [0, 1], { ...clamp, easing: smooth });
+  const sub = interpolate(frame, [58, 90], [0, 1], { ...clamp, easing: smooth });
 
   return (
     <AbsoluteFill style={{ background: bg, overflow: 'hidden' }}>
+      <Glow x={1300} y={360} size={1100} alpha={0.4} pulse={pulse} />
+      <Glow x={420} y={820} size={800} alpha={0.2} pulse={pulse} />
       <AbsoluteFill style={{ transform: `scale(${zoom})`, alignItems: 'center', justifyContent: 'center' }}>
-        <div
-          style={{
-            position: 'absolute',
-            width: 420,
-            height: 420,
-            borderRadius: '50%',
-            background: color.red,
-            right: 250,
-            top: 120,
-            transform: `scale(${sun})`,
-          }}
-        />
-        <div style={{ position: 'absolute', left: 240, top: 0, width: 2, height: `${rule * 100}%`, background: color.red }} />
-        <div style={{ display: 'flex', gap: 20, fontFamily: font.jp, fontSize: 150, fontWeight: 500, color: fg }}>
+        <div style={{ display: 'flex', gap: 14, fontFamily: font.jp, fontSize: 156, fontWeight: 700, color: fg }}>
           {glyphs.map((g, i) => {
-            const p = spring({ frame: frame - 14 - i * 5, fps, durationInFrames: 40, config: { damping: 200 } });
+            const p = spring({ frame: frame - 10 - i * 4, fps, durationInFrames: 38, config: { damping: 200 } });
             return (
               <span
                 key={i}
                 style={{
                   opacity: p,
-                  transform: `translateY(${(1 - p) * 44}px)`,
+                  transform: `translateY(${(1 - p) * 50}px)`,
                   filter: `blur(${(1 - p) * 14}px)`,
                 }}
               >
@@ -50,13 +39,23 @@ export const Hook = () => {
         </div>
         <div
           style={{
-            position: 'absolute',
-            top: 640,
+            marginTop: 40,
+            width: 140 * bar,
+            height: 6,
+            borderRadius: 3,
+            background: color.green,
+          }}
+        />
+        <div
+          style={{
+            marginTop: 36,
             fontFamily: font.sans,
-            fontSize: 30,
-            letterSpacing: `${interpolate(sub, [0, 1], [0.6, 0.2])}em`,
-            opacity: sub,
+            fontSize: 34,
+            fontWeight: 500,
+            letterSpacing: '0.04em',
             color: fg,
+            opacity: sub,
+            transform: `translateY(${(1 - sub) * 16}px)`,
           }}
         >
           Your Japanese journey starts here.
@@ -66,29 +65,20 @@ export const Hook = () => {
         style={{
           position: 'absolute',
           left: 120,
-          top: 90,
+          top: 88,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
           fontFamily: font.sans,
           fontSize: 18,
-          letterSpacing: '0.45em',
+          fontWeight: 700,
+          letterSpacing: '0.32em',
           color: fg,
-          opacity: sub * 0.7,
+          opacity: sub,
         }}
       >
-        NIHONGO
-      </div>
-      <div
-        style={{
-          position: 'absolute',
-          right: 120,
-          bottom: 90,
-          fontFamily: font.sans,
-          fontSize: 18,
-          letterSpacing: '0.3em',
-          color: fg,
-          opacity: sub * 0.7,
-        }}
-      >
-        01 / 05
+        <div style={{ width: 12, height: 12, borderRadius: 6, background: color.green }} />
+        {brand.name}
       </div>
     </AbsoluteFill>
   );

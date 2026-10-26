@@ -7,7 +7,6 @@
     "build": "next build",
     "typecheck": "tsc --noEmit",
     "studio": "remotion studio remotion/index.ts",
-    "audio": "bash scripts/audio.sh",
     "render": "remotion render remotion/index.ts PromoVideo dist/japanese-promo.mp4 --codec=h264 --audio-codec=aac --crf=18"
   },
   "dependencies": {
