@@ -1,14 +1,7 @@
-import {Composition} from 'remotion';
-import {Promo} from './Promo';
-import {canvas} from './theme';
+import {Composition} from 'remotion'
+import {FPS, H, TOTAL, W} from './constants'
+import {Main} from './Main'
 
 export const Root = () => (
-  <Composition
-    id="RennXJapanLandscape"
-    component={Promo}
-    width={canvas.width}
-    height={canvas.height}
-    fps={canvas.fps}
-    durationInFrames={canvas.frames}
-  />
-);
+  <Composition id="Promo" component={Main} durationInFrames={TOTAL} fps={FPS} width={W} height={H} />
+)
