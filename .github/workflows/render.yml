@@ -1,14 +1,14 @@
-name: Render video
+name: Render UntilyFlow Promo
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
-  workflow_dispatch:
 
 jobs:
   render:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -16,37 +16,18 @@ jobs:
         with:
           node-version: 20
 
-      - name: Periksa musik
-        run: |
-          if [ ! -f public/music.mp3 ]; then
-            echo "::warning::public/music.mp3 belum ada, video dirender tanpa audio"
-          fi
-
-      - name: Install dependensi
+      - name: Install dependencies
         run: npm install
 
-      - name: Render video
-        run: npm run render
+      - name: Render MP4 (1920x1080, 30 fps)
+        run: npx remotion render src/index.ts UntilyFlowPromo out/UntilyFlow-Promo.mp4 --codec=h264 --crf=18
 
-      - name: Install ffmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Zip output
+        run: cd out && zip -9 ../UntilyFlow-Promo.zip UntilyFlow-Promo.mp4
 
-      - name: Verifikasi hasil render
-        run: |
-          F=out/noxora-rest-api.mp4
-          P=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height,r_frame_rate,nb_frames -of default=nw=1 "$F")
-          echo "$P"
-          echo "$P" | grep -qx 'width=1920'
-          echo "$P" | grep -qx 'height=1080'
-          echo "$P" | grep -qx 'r_frame_rate=60/1'
-          echo "$P" | grep -qx 'nb_frames=1740'
-
-      - name: Kemas ZIP
-        run: cd out && zip noxora-rest-api-promo.zip noxora-rest-api.mp4
-
-      - name: Unggah artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: noxora-rest-api-promo
-          path: out/noxora-rest-api-promo.zip
-          compression-level: 0
+          name: untilyflow-promo
+          path: |
+            out/UntilyFlow-Promo.mp4
+            UntilyFlow-Promo.zip

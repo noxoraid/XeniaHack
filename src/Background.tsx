@@ -1,58 +1,32 @@
-import {FC} from 'react'
-import {AbsoluteFill, useCurrentFrame} from 'remotion'
-import {C, TOTAL} from './constants'
-import {beatPulse} from './ui'
+import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { COLORS } from "./theme";
 
-export const Background: FC = () => {
-  const f = useCurrentFrame()
-  const beat = beatPulse(f)
-  const drift = f * 0.6
+// Gradasi awan yang bergerak pelan di belakang semua adegan.
+export const Background: React.FC = () => {
+  const f = useCurrentFrame();
+  const blob = (x: number, y: number, size: number, color: string, phase: number) => ({
+    position: "absolute" as const,
+    left: x + Math.sin((f + phase) / 90) * 80,
+    top: y + Math.cos((f + phase) / 110) * 60,
+    width: size,
+    height: size,
+    borderRadius: "50%",
+    background: color,
+    filter: "blur(120px)",
+    opacity: 0.55,
+  });
   return (
-    <AbsoluteFill>
+    <AbsoluteFill style={{ backgroundColor: COLORS.bg, overflow: "hidden" }}>
+      <div style={blob(-200, -200, 900, COLORS.sky, 0)} />
+      <div style={blob(1200, 300, 800, COLORS.violet, 120)} />
+      <div style={blob(500, 700, 700, "#1E3A8A", 240)} />
       <AbsoluteFill
         style={{
-          backgroundImage: `linear-gradient(${C.line} 1px, transparent 1px), linear-gradient(90deg, ${C.line} 1px, transparent 1px)`,
-          backgroundSize: '96px 96px',
-          backgroundPosition: `${drift}px ${drift}px`,
-          opacity: 0.7
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          width: 760,
-          height: 760,
-          left: 1300 + Math.sin(f / 90) * 80,
-          top: -280,
-          borderRadius: '50%',
-          background: `radial-gradient(circle, ${C.greenSoft}, transparent 70%)`
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          width: 760,
-          height: 760,
-          left: -260,
-          top: 640 + Math.cos(f / 110) * 60,
-          borderRadius: '50%',
-          background: `radial-gradient(circle, ${C.greenSoft}, transparent 70%)`
-        }}
-      />
-      <div style={{position: 'absolute', left: 0, top: 0, height: 6, width: `${(f / TOTAL) * 100}%`, background: C.green}} />
-      <div
-        style={{
-          position: 'absolute',
-          right: 48,
-          bottom: 48,
-          width: 18,
-          height: 18,
-          borderRadius: 6,
-          background: C.green,
-          opacity: 0.55 + beat * 0.45,
-          transform: `scale(${1 + beat * 0.6})`
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
+          backgroundSize: "80px 80px",
         }}
       />
     </AbsoluteFill>
-  )
-}
+  );
+};
