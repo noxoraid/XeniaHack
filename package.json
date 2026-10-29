@@ -1,0 +1,26 @@
+{
+  "name": "cosmic-rift-transition",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "render:1080": "remotion render src/index.ts CosmicRift out/cosmic-rift-1080p.mp4 --codec=h264 --crf=18",
+    "render:720": "remotion render src/index.ts CosmicRift720 out/cosmic-rift-720p.mp4 --codec=h264 --crf=22",
+    "poster": "remotion still src/index.ts CosmicRift out/cosmic-rift-poster.jpg --frame=120",
+    "render": "npm run render:1080 && npm run render:720 && npm run poster",
+    "pack": "rm -rf out/web && cp -r web out/web && cd out && zip -r ../cosmic-rift-transition.zip ."
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.539",
+    "@remotion/google-fonts": "4.0.539",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.539",
+    "zod": "3.22.3"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "typescript": "5.6.3"
+  }
+}

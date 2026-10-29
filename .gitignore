@@ -1,9 +1,4 @@
-.gradle/
-build/
-local.properties
-*.iml
-.idea/
-.cxx/
-*.jks
-*.keystore
-keystore.properties
+node_modules
+out
+*.zip
+props.json

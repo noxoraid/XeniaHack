@@ -1,0 +1,77 @@
+name: Render Cosmic Rift Transition
+
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: Title text
+        default: NOXORA
+      subtitle:
+        description: Subtitle text
+        default: ENTER THE COSMOS
+  push:
+    branches: [main]
+    tags: ["main*"]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "web/**"
+      - "package.json"
+      - "remotion.config.ts"
+      - ".github/workflows/render.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: System deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zip libnss3 libdbus-1-3 libatk1.0-0 libasound2t64 libxrandr2 libxkbcommon-dev libxfixes3 libxcomposite1 libxdamage1 libatk-bridge2.0-0 libpango-1.0-0 libcairo2 libcups2 libgbm-dev
+
+      - run: npm ci
+
+      - run: npx remotion browser ensure
+
+      - name: Props
+        env:
+          TITLE: ${{ inputs.title || 'NOXORA' }}
+          SUBTITLE: ${{ inputs.subtitle || 'ENTER THE COSMOS' }}
+        run: jq -n --arg t "$TITLE" --arg s "$SUBTITLE" '{title:$t,subtitle:$s}' > props.json
+
+      - name: Render 1080p
+        run: npx remotion render src/index.ts CosmicRift out/cosmic-rift-1080p.mp4 --codec=h264 --crf=18 --props=./props.json
+
+      - name: Render 720p
+        run: npx remotion render src/index.ts CosmicRift720 out/cosmic-rift-720p.mp4 --codec=h264 --crf=22 --props=./props.json
+
+      - name: Poster
+        run: npx remotion still src/index.ts CosmicRift out/cosmic-rift-poster.jpg --frame=120 --props=./props.json
+
+      - name: Pack
+        run: |
+          cp -r web out/web
+          cd out
+          zip -r ../cosmic-rift-transition.zip .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cosmic-rift-transition
+          path: out/
+          if-no-files-found: error
+
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: cosmic-rift-transition.zip
